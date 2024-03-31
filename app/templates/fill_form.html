@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>學生基本資訊</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h2>學生基本資訊</h2>
+        <form action="/submit-info" method="POST">
+            <div class="form-group">
+                <label for="name">姓名:</label>
+                <input type="text" class="form-control" id="name" name="name" value="{{ user_info['name'][0] }}" readonly>
+            </div>
+            <div class="form-group">
+                <label for="department">系級:</label>
+                <input type="text" class="form-control" id="department" name="department" value="{{ user_info['department'][0] }}" readonly>
+            </div>
+            <div class="form-group">
+                <label for="student_id">學號:</label>
+                <input type="text" class="form-control" id="student_id" name="student_id" value="{{ user_info['student_id'][0] }}" readonly>
+            </div>
+            <div class="form-group">
+                <label for="nationality">國籍:</label>
+                <input type="text" class="form-control" id="nationality" name="nationality" required>
+            </div>
+            <button type="submit" class="btn btn-primary">提交</button>
+        </form>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.2/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
