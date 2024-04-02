@@ -17,8 +17,9 @@ Ensure you have Poetry installed. If you haven't, install it following the instr
 
 Navigate to the project directory and run the following command to install dependencies:
 
-```bash
+```
 poetry install
+```
 
 ## Configuration
 Before running the application, configure the SAML client in app.py:
@@ -30,13 +31,15 @@ Ensure your entityid matches the one registered on SSOCircle.
 ## Running the App
 Activate the poetry environment and start the application with:
 
+```
 poetry shell
 flask run --port=5000
+```
 
-The app will start a local server on http://localhost:5000.
+The app will start a local server on `http://localhost:5000.`
 
 ## SSO Flow
-When you navigate to http://localhost:5000, the Flask app initiates the SSO login process by redirecting to the SSOCircle login page for authentication. After successful login, SSOCircle redirects back to the /saml/acs/ route with a SAMLResponse.
+When you navigate to `http://localhost:5000`, the Flask app initiates the SSO login process by redirecting to the SSOCircle login page for authentication. After successful login, SSOCircle redirects back to the /saml/acs/ route with a SAMLResponse.
 
 The Flask app then:
 
