@@ -19,6 +19,7 @@ Navigate to the project directory and run the following command to install depen
 
 ```
 poetry install
+poetry update
 ```
 
 ## Configuration
