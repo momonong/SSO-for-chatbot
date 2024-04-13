@@ -22,7 +22,7 @@ acs_url = 'http://localhost:5000/saml/acs/'
 
 # 這裡配置您的 SAML
 saml_config = {
-    'entityid': 'http://localhost:5000/saml/metadata',
+    'entityid': 'http://localhost:5000/saml/metadata/momonongchen',
     'service': {
         'sp': {
             'endpoints': {
