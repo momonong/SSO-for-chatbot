@@ -19,6 +19,8 @@ app.secret_key = SECRET_KEY
 metadata_path = 'config/sp_metadata.xml'
 # 在創建SAML客戶端之前，不使用url_for
 acs_url = 'http://localhost:5000/saml/acs/'
+# 證書檔案的路徑
+cert_file_path = 'certs/SSOCircle CA Certificate.cer'  
 
 # 這裡配置您的 SAML
 saml_config = {
@@ -36,6 +38,7 @@ saml_config = {
     },
     'metadata': {
         'local': [metadata_path],
+        'cert_file': os.path.join('certs', 'SSOCircle_CA_Certificate.cer')
     },
     # 其他 SAML 配置，例如證書、加密等...
 }
@@ -100,4 +103,4 @@ def submit_info():
     return '資料提交成功！'
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=8000)
