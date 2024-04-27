@@ -1,9 +1,7 @@
-# pip install pysaml2
+# pip install pysaml2 requests_oauthlib
 
-from flask import Flask, request, render_template, session, redirect, url_for
-from saml2 import BINDING_HTTP_POST
-from saml2.client import Saml2Client
-from saml2.config import Config as Saml2Config
+from flask import Flask, redirect, request, render_template, session, url_for
+from requests_oauthlib import OAuth2Session
 from dotenv import load_dotenv
 import os
 
@@ -15,78 +13,36 @@ if not SECRET_KEY:
     raise ValueError('No secret key set for Flask application')
 app.secret_key = SECRET_KEY
 
-# 示例路徑，請根據實際存放元數據的位置進行調整
-metadata_path = 'config/sp_metadata.xml'
-# 在創建SAML客戶端之前，不使用url_for
-acs_url = 'http://localhost:5000/saml/acs/'
-# 證書檔案的路徑
-cert_file_path = 'certs/SSOCircle CA Certificate.cer'  
-
-# 這裡配置您的 SAML
-saml_config = {
-    'entityid': 'http://localhost:5000/saml/metadata/momonongchen',
-    'service': {
-        'sp': {
-            'endpoints': {
-                'assertion_consumer_service': [
-                    # 終端URL應該和SP metadata中聲明的相匹配，使用url_for生成完整URL
-                    (acs_url, BINDING_HTTP_POST),
-                ],
-            },
-            # ...（其他服務提供者設定，例如要求的名稱ID格式等）...
-        },
-    },
-    'metadata': {
-        'local': [metadata_path],
-        'cert_file': os.path.join('certs', 'SSOCircle_CA_Certificate.cer')
-    },
-    # 其他 SAML 配置，例如證書、加密等...
-}
-
-# 確保 SAML 客戶端實例化時使用你的配置
-saml_client = Saml2Client(Saml2Config(saml_config))
+# OAuth 配置
+CLIENT_ID = os.getenv('OAUTH2_CLIENT_ID')
+CLIENT_SECRET = os.getenv('OAUTH2_CLIENT_SECRET')
+AUTHORIZATION_BASE_URL = os.getenv('OAUTH2_AUTHORIZATION_URL')
+TOKEN_URL = os.getenv('OAUTH2_TOKEN_URL')
+REDIRECT_URI = os.getenv('OAUTH2_REDIRECT_URI')
 
 @app.route('/')
 def index():
-    # 啟動 SSO 登入流程
-    authn_request = saml_client.prepare_for_authenticate()
-    redirect_url = authn_request[1]['headers'][0][1]
-    return redirect(redirect_url)
+    # 啟動 OAuth 登入流程
+    ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
+    authorization_url, _ = ncku.authorization_url(AUTHORIZATION_BASE_URL)
+    # 將用戶重定向到 NCKU 進行認證
+    return redirect(authorization_url)
 
-@app.route('/saml/acs/', methods=['POST'])
-def acs():
-    # 獲取POST請求中的SAMLResponse
-    saml_response = request.form.get('SAMLResponse')
-    if not saml_response:
-        return 'SAMLResponse not found in the request.', 400
-
-    try:
-        authn_response = saml_client.parse_authn_request_response(
-            saml_response, BINDING_HTTP_POST
-        )
-    except Exception as e:
-        app.logger.error(f'Failed to parse SAML response: {e}')
-        return 'Failed to authenticate.', 400
-    
-    # 獲取用戶信息
-    user_info = authn_response.get_identity()
-    
-    # 將用戶信息保存在會話中
-    session['user_info'] = user_info
-    
-    # 重定向到表單填寫頁
+@app.route('/callback')
+def callback():
+    ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
+    ncku.fetch_token(TOKEN_URL, client_secret=CLIENT_SECRET, authorization_response=request.url)
+    # 存取 token 資料到 session 中，可用於後續認證
+    session['oauth_token'] = ncku.token
+    # 重定向到表單填寫頁面
     return redirect(url_for('fill_form'))
 
 @app.route('/fill-form')
 def fill_form():
-    # 檢查用戶信息是否已經保存在會話中
-    if 'user_info' not in session:
+    # 檢查 session 中是否有用戶資訊
+    if 'oauth_token' not in session:
         return 'User info not found in the session', 400
-    
-    user_info = session['user_info']
-    
-    # 渲染帶有用戶信息的填寫表單頁面
-    return render_template('fill_form.html', user_info=user_info)
+    return render_template('fill_form.html', user_info=session.get('oauth_token'))
 
 @app.route('/submit-info', methods=['POST'])
 def submit_info():
@@ -95,10 +51,8 @@ def submit_info():
     department = request.form.get('department')
     student_id = request.form.get('student_id')
     nationality = request.form.get('nationality')
-
     # 處理這些資料，例如儲存到資料庫或發送到另一個 API
     print(f'姓名: {name}, 系級: {department}, 學號: {student_id}, 國籍: {nationality}')
-
     # 回應提交成功的訊息
     return '資料提交成功！'
 
