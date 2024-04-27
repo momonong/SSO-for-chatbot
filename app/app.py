@@ -1,4 +1,4 @@
-# pip install pysaml2 requests_oauthlib
+# poetry add pysaml2 requests_oauthlib
 
 from flask import Flask, redirect, request, render_template, session, url_for
 from requests_oauthlib import OAuth2Session

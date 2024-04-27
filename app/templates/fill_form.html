@@ -11,19 +11,19 @@
         <h2>提交基本資訊</h2>
         <form action="/submit-info" method="POST">
             <div class="form-group">
-                <label for="name">姓名:</label>
+                <label for="name">姓名 Name:</label>
                 <input type="text" class="form-control" id="name" name="name" value="{{ user_info['name'][0] }}" readonly>
             </div>
             <div class="form-group">
-                <label for="department">系級:</label>
+                <label for="department">系級 Department and Year:</label>
                 <input type="text" class="form-control" id="department" name="department" value="{{ user_info['department'][0] }}" readonly>
             </div>
             <div class="form-group">
-                <label for="student_id">學號:</label>
+                <label for="student_id">學號 Student ID Number:</label>
                 <input type="text" class="form-control" id="student_id" name="student_id" value="{{ user_info['student_id'][0] }}" readonly>
             </div>
             <div class="form-group">
-                <label for="nationality">國籍:</label>
+                <label for="nationality">國籍 Nationality:</label>
                 <select class="form-control" id="nationality" name="nationality" required>
                     <option value=""></option>
                     <option value="CN">中國 China</option>
@@ -41,7 +41,7 @@
                     <!-- Add more countries as needed -->
                 </select>
             </div>
-            <button type="submit" class="btn btn-primary">提交</button>
+            <button type="submit" class="btn btn-primary">提交 Submit</button>
         </form>
     </div>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
