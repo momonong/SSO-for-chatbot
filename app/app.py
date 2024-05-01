@@ -6,12 +6,9 @@ from dotenv import load_dotenv
 import os
 
 app = Flask(__name__)
+app.secret_key = os.urandom(24)  # 用於安全地簽名session
 
 load_dotenv()
-SECRET_KEY = os.getenv('SECRET_KEY')
-if not SECRET_KEY:
-    raise ValueError('No secret key set for Flask application')
-app.secret_key = SECRET_KEY
 
 # OAuth 配置
 CLIENT_ID = os.getenv('OAUTH2_CLIENT_ID')
@@ -20,13 +17,32 @@ AUTHORIZATION_BASE_URL = os.getenv('OAUTH2_AUTHORIZATION_URL')
 TOKEN_URL = os.getenv('OAUTH2_TOKEN_URL')
 REDIRECT_URI = os.getenv('OAUTH2_REDIRECT_URI')
 
+# SSL 證書路徑
+CERT_FOLDER = os.path.abspath('../sso/certs')
+CERT_PATH = os.path.join(CERT_FOLDER, 'cert.pem')
+KEY_PATH = os.path.join(CERT_FOLDER, 'key.pem')
+
 @app.route('/')
 def index():
     # 啟動 OAuth 登入流程
     ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
+    print(ncku)
     authorization_url, _ = ncku.authorization_url(AUTHORIZATION_BASE_URL)
     # 將用戶重定向到 NCKU 進行認證
     return redirect(authorization_url)
+
+# @app.route('/')
+# def index():
+#     # 顯示一個包含登入按鈕的頁面
+#     return render_template('login.html')
+
+# @app.route('/login')
+# def login():
+#     # 啟動 OAuth 登入流程
+#     ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
+#     authorization_url, _ = ncku.authorization_url(AUTHORIZATION_BASE_URL)
+#     # 將用戶重定向到 NCKU 進行認證
+#     return redirect(authorization_url)
 
 @app.route('/callback')
 def callback():
@@ -57,4 +73,5 @@ def submit_info():
     return '資料提交成功！'
 
 if __name__ == '__main__':
-    app.run(debug=True, port=8000)
+    # app.run(ssl_context=(CERT_PATH, KEY_PATH), debug=True)
+    app.run(debug=True, ssl_context='adhoc')
