@@ -25,9 +25,12 @@ KEY_PATH = os.path.join(CERT_FOLDER, 'key.pem')
 @app.route('/')
 def index():
     # 啟動 OAuth 登入流程
+    print('22')
     ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
-    print(ncku)
+    print(ncku.headers)
+    print(ncku.max_redirects)
     authorization_url, _ = ncku.authorization_url(AUTHORIZATION_BASE_URL)
+    print('34')
     # 將用戶重定向到 NCKU 進行認證
     return redirect(authorization_url)
 
@@ -74,4 +77,6 @@ def submit_info():
 
 if __name__ == '__main__':
     # app.run(ssl_context=(CERT_PATH, KEY_PATH), debug=True)
+    print('2')
     app.run(debug=True, ssl_context='adhoc')
+    print('3')
