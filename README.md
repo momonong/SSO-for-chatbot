@@ -1,13 +1,13 @@
-# SSO Integration with Flask using pysaml2
+# OAuth Integration with Flask
 
-This project demonstrates how to integrate Single Sign-On (SSO) into a Flask application using the pysaml2 library. It includes steps for setting up the SSO process with SSOCircle as an Identity Provider (IdP).
+This project demonstrates how to integrate OAuth into a Flask application for authenticating users via the National Cheng Kung University (NCKU) OAuth service.
 
 ## Prerequisites
 
 - Python 3.10
 - Flask
-- pysaml2
-- A valid domain name configured for your application to communicate with the SSOCircle IdP.
+- requests-oauthlib
+- A valid domain name configured to redirect to your application for OAuth callbacks.
 
 ## Setup
 
@@ -23,11 +23,15 @@ poetry update
 ```
 
 ## Configuration
-Before running the application, configure the SAML client in app.py:
+Before running the application, ensure the following environment variables are properly set in your .env file:
 
-Update metadata_path with the correct path to your SAML metadata file.
-Replace 'YOUR_SECRET_KEY' with a strong secret key for Flask sessions.
-Ensure your entityid matches the one registered on SSOCircle.
+```
+CLIENT_ID: The client ID provided by NCKU.
+CLIENT_SECRET: The client secret provided by NCKU.
+AUTHORIZATION_BASE_URL: URL to initiate the OAuth authorization flow.
+TOKEN_URL: URL to fetch the OAuth tokens after successful authorization.
+REDIRECT_URI: The URI to which the OAuth service will redirect after successful authentication.
+```
 
 ## Running the App
 Activate the poetry environment and start the application with:
@@ -39,29 +43,28 @@ flask run --port=5000
 
 The app will start a local server on `http://localhost:5000.`
 
-## SSO Flow
-When you navigate to `http://localhost:5000`, the Flask app initiates the SSO login process by redirecting to the SSOCircle login page for authentication. After successful login, SSOCircle redirects back to the /saml/acs/ route with a SAMLResponse.
+## OAuth Flow
+When you navigate to `http://localhost:5000`, the Flask app initiates the OAuth login process by redirecting to the NCKU OAuth login page for authentication. After successful login, NCKU redirects back to the /callback route with an authorization code.
 
 The Flask app then:
 
-Parses the SAMLResponse.
-Extracts the user information.
-Stores user information in the session.
+Exchanges the authorization code for an access token.
+Stores the access token and any other user info in the session.
 Redirects to a form where additional information can be filled in.
 
 ## Form Submission
 On the form page:
 
-User's name, student ID, and department, extracted from the SSO process, are pre-filled.
-Users are asked to fill in their nationality.
+User's basic information, fetched using the access token, is displayed.
+Users can fill in additional information like nationality.
 Upon submission, the data is sent to the backend, where it can be processed further.
 
 ## Error Handling
-If you encounter errors during the SSO process, check the Flask logs and SSOCircle configuration for debugging.
+If you encounter errors during the OAuth process, check the Flask logs and your OAuth service configuration for debugging.
 
 ## Contributing
 Contributions are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 ## Acknowledgements
-SSOCircle for providing a free IdP for SAML testing.
-Flask and pysaml2 contributors.
+National Cheng Kung University for providing the OAuth service.
+Flask and requests-oauthlib contributors.
