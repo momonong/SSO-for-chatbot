@@ -88,12 +88,12 @@ server {
     }
 }
 ```
-Enable the Configuration:Link your configuration file from sites-available to sites-enabled:
-```sudo ln -s /etc/nginx/sites-available/myapp.conf /etc/nginx/sites-enabled/```
-Test and Restart Nginx:Test your Nginx configuration for syntax errors:
-```sudo nginx -t```
-If everything is ok, restart Nginx to apply the changes:
-```sudo systemctl restart nginx```
+Enable the Configuration:Link your configuration file from sites-available to sites-enabled:  
+```sudo ln -s /etc/nginx/sites-available/myapp.conf /etc/nginx/sites-enabled/```  
+Test and Restart Nginx:Test your Nginx configuration for syntax errors:  
+```sudo nginx -t```  
+If everything is ok, restart Nginx to apply the changes:  
+```sudo systemctl restart nginx```  
 
 Secure the Application with SSL/TLS:If you're using a domain name, it's recommended to secure your application with an SSL/TLS certificate. 
 You can obtain a free certificate from Let's Encrypt using Certbot:
