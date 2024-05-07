@@ -33,15 +33,70 @@ TOKEN_URL: URL to fetch the OAuth tokens after successful authorization.
 REDIRECT_URI: The URI to which the OAuth service will redirect after successful authentication.
 ```
 
-## Running the App
-Activate the poetry environment and start the application with:
+## Server Setup and Deployment with Gunicorn and Nginx
 
-```
-poetry shell
-flask run --port=5000
-```
+This section provides a guide on setting up a WSGI server using Gunicorn and configuring Nginx as a reverse proxy for a Flask application.
 
-The app will start a local server on `http://localhost:5000.`
+**Install Gunicorn**
+Gunicorn is used as the WSGI HTTP server for Python applications. To install Gunicorn, run:
+`poetry add gunicorn`
+
+**Run the Application with Gunicorn**
+To start the application using Gunicorn, navigate to your project directory and run:
+`gunicorn "wsgi:app" --bind 0.0.0.0:8000`
+This command will bind the Gunicorn server to all network interfaces on port 8000, making it accessible via your server's IP address or domain name.
+
+### Configure Nginx as a Reverse Proxy
+Nginx can be used to efficiently serve static files, handle more HTTP requests, and provide SSL/TLS termination. 
+Here's how you can set up Nginx to work with Gunicorn:
+
+Install Nginx:
+```
+sudo apt update
+sudo apt install nginx
+```
+Create and Configure Nginx Server Block:
+Navigate to the Nginx configuration directory and create a new configuration file for your application:
+```
+cd /etc/nginx/sites-available
+sudo vim myapp.conf
+```
+Add the following configuration to the file:
+```
+server {
+    listen 80;
+    server_name mydomain.com;  # Replace with your domain name
+
+    location / {
+        include proxy_params;
+        proxy_pass http://127.0.0.1:8000;
+    }
+}
+```
+Enable the Configuration:Link your configuration file from sites-available to sites-enabled:
+`sudo ln -s /etc/nginx/sites-available/myapp.conf /etc/nginx/sites-enabled/`
+Test and Restart Nginx:Test your Nginx configuration for syntax errors:
+`sudo nginx -t`
+If everything is ok, restart Nginx to apply the changes:
+`sudo systemctl restart nginx`
+
+Secure the Application with SSL/TLS:If you're using a domain name, it's recommended to secure your application with an SSL/TLS certificate. 
+You can obtain a free certificate from Let's Encrypt using Certbot:
+```
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d mydomain.com
+```
+Follow the prompts, and Certbot will automatically configure SSL for your domain and modify the Nginx configuration accordingly.
+
+Ensure that both Gunicorn and Nginx start automatically at boot:
+```
+sudo systemctl enable nginx
+sudo systemctl enable gunicorn
+```
+You may need to create a systemd service file for Gunicorn if you require it to start automatically.
+
+Conclusion
+With these settings, your Flask application is now served by Gunicorn, with Nginx acting as a reverse proxy that handles client requests and serves static files efficiently.
 
 ## OAuth Flow
 When you navigate to `http://localhost:5000`, the Flask app initiates the OAuth login process by redirecting to the NCKU OAuth login page for authentication. After successful login, NCKU redirects back to the /callback route with an authorization code.

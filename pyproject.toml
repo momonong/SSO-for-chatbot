@@ -11,6 +11,7 @@ flask = "^3.0.2"
 pysaml2 = "^7.5.0"
 python-dotenv = "^1.0.1"
 requests-oauthlib = "^2.0.0"
+gunicorn = "^22.0.0"
 
 
 [build-system]
