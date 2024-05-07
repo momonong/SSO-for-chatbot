@@ -39,11 +39,15 @@ This section provides a guide on setting up a WSGI server using Gunicorn and con
 
 **Install Gunicorn**  
 Gunicorn is used as the WSGI HTTP server for Python applications. To install Gunicorn, run:
-```poetry add gunicorn```
+```
+poetry add gunicorn
+```
 
 **Run the Application with Gunicorn**  
 To start the application using Gunicorn, navigate to your project directory and run:
-```gunicorn "wsgi:app" --bind 0.0.0.0:8000```
+```
+gunicorn "wsgi:app" --bind 0.0.0.0:8000
+```
 This command will bind the Gunicorn server to all network interfaces on port 8000, making it accessible via your server's IP address or domain name.
 
 ### Configure Nginx as a Reverse Proxy
@@ -89,11 +93,17 @@ server {
 }
 ```
 Enable the Configuration:Link your configuration file from sites-available to sites-enabled:  
-```sudo ln -s /etc/nginx/sites-available/myapp.conf /etc/nginx/sites-enabled/```  
+```
+sudo ln -s /etc/nginx/sites-available/myapp.conf /etc/nginx/sites-enabled/
+```  
 Test and Restart Nginx:Test your Nginx configuration for syntax errors:  
-```sudo nginx -t```  
+```
+sudo nginx -t
+```  
 If everything is ok, restart Nginx to apply the changes:  
-```sudo systemctl restart nginx```  
+```
+sudo systemctl restart nginx
+```  
 
 Secure the Application with SSL/TLS:If you're using a domain name, it's recommended to secure your application with an SSL/TLS certificate. 
 You can obtain a free certificate from Let's Encrypt using Certbot:
