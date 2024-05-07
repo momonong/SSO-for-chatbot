@@ -37,27 +37,29 @@ REDIRECT_URI: The URI to which the OAuth service will redirect after successful 
 
 This section provides a guide on setting up a WSGI server using Gunicorn and configuring Nginx as a reverse proxy for a Flask application.
 
-**Install Gunicorn**
+**Install Gunicorn**  
 Gunicorn is used as the WSGI HTTP server for Python applications. To install Gunicorn, run:
-`poetry add gunicorn`
+```poetry add gunicorn```
 
-**Run the Application with Gunicorn**
+**Run the Application with Gunicorn**  
 To start the application using Gunicorn, navigate to your project directory and run:
-`gunicorn "wsgi:app" --bind 0.0.0.0:8000`
+```gunicorn "wsgi:app" --bind 0.0.0.0:8000```
 This command will bind the Gunicorn server to all network interfaces on port 8000, making it accessible via your server's IP address or domain name.
 
 ### Configure Nginx as a Reverse Proxy
 Nginx can be used to efficiently serve static files, handle more HTTP requests, and provide SSL/TLS termination. 
 Here's how you can set up Nginx to work with Gunicorn:
 
-Install Nginx:
 ```
+# Install Nginx
+
 sudo apt update
 sudo apt install nginx
 ```
 Create and Configure Nginx Server Block:
-Navigate to the Nginx configuration directory and create a new configuration file for your application:
 ```
+# Navigate to the Nginx configuration directory and create a new configuration file for your application
+
 cd /etc/nginx/sites-available
 sudo vim myapp.conf
 ```
@@ -65,20 +67,33 @@ Add the following configuration to the file:
 ```
 server {
     listen 80;
-    server_name mydomain.com;  # Replace with your domain name
+    listen [::]:80;
+    server_name example.com;  # 更換為你的域名或公網 IP 地址
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name example.com;  # 更換為你的域名或公網 IP 地址
+
+    ssl_certificate /etc/ssl/certs/mycertificate.crt;
+    ssl_certificate_key /etc/ssl/private/mykey.key;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers on;
+    ssl_ciphers "EECDH+AESGCM:EDH+AESGCM:AES256+EECDH:AES256+EDH";
 
     location / {
         include proxy_params;
-        proxy_pass http://127.0.0.1:8000;
+        proxy_pass http://127.0.0.1:8000;  # 確保這裡指向你的 Flask 應用
     }
 }
 ```
 Enable the Configuration:Link your configuration file from sites-available to sites-enabled:
-`sudo ln -s /etc/nginx/sites-available/myapp.conf /etc/nginx/sites-enabled/`
+```sudo ln -s /etc/nginx/sites-available/myapp.conf /etc/nginx/sites-enabled/```
 Test and Restart Nginx:Test your Nginx configuration for syntax errors:
-`sudo nginx -t`
+```sudo nginx -t```
 If everything is ok, restart Nginx to apply the changes:
-`sudo systemctl restart nginx`
+```sudo systemctl restart nginx```
 
 Secure the Application with SSL/TLS:If you're using a domain name, it's recommended to secure your application with an SSL/TLS certificate. 
 You can obtain a free certificate from Let's Encrypt using Certbot:
