@@ -21,6 +21,6 @@ server {
 
     location / {
         include proxy_params;
-        proxy_pass http://127.0.0.1:8000;  # 指向 Flask 應用
+        proxy_pass http://127.0.0.1:5000;  # 指向 Flask 應用
     }
 }
