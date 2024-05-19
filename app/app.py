@@ -78,5 +78,5 @@ def submit_info():
 if __name__ == '__main__':
     # app.run(ssl_context=(CERT_PATH, KEY_PATH), debug=True)
     print('2')
-    app.run(debug=True, ssl_context='adhoc')
+    app.run(debug=True, ssl_context='adhoc', host='0.0.0.0', port=443)
     print('3')
