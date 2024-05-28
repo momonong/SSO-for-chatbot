@@ -1,8 +1,8 @@
 import os
 
 def list_ssl_files():
-    ssl_dir = '/etc/ssl'
-    
+    ssl_dir = os.path.abspath('/etc/ssl/')
+
     # 切换到指定目录
     os.chdir(ssl_dir)
     

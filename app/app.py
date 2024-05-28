@@ -76,7 +76,7 @@ def submit_info():
     return '資料提交成功！'
 
 if __name__ == '__main__':
-    # app.run(ssl_context=(CERT_PATH, KEY_PATH), debug=True)
+    app.run(ssl_context=(CERT_PATH, KEY_PATH), debug=True, host='0.0.0.0', port=8080)
     print('2')
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    # app.run(debug=True, host='0.0.0.0', port=8080)
     print('3')
