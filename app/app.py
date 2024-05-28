@@ -18,9 +18,9 @@ TOKEN_URL = os.getenv('OAUTH2_TOKEN_URL')
 REDIRECT_URI = os.getenv('OAUTH2_REDIRECT_URI')
 
 # SSL 證書路徑
-CERT_FOLDER = os.path.abspath('../sso/certs')
-CERT_PATH = os.path.join(CERT_FOLDER, 'cert.pem')
-KEY_PATH = os.path.join(CERT_FOLDER, 'key.pem')
+CERT_FOLDER = os.path.abspath('/etc/ssl/')
+CERT_PATH = os.path.join(CERT_FOLDER, 'certificate.pem')
+KEY_PATH = os.path.join(CERT_FOLDER, 'private.pem')
 
 @app.route('/')
 def index():
