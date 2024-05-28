@@ -3,9 +3,9 @@ import os
 
 app = Flask(__name__)
 
-CERT_FOLDER = os.path.abspath('/etc/ssl/')
-CERT_PATH = os.path.join(CERT_FOLDER, 'certificate.pem')
-KEY_PATH = os.path.join(CERT_FOLDER, 'private.pem')
+# CERT_FOLDER = os.path.abspath('/etc/ssl/')
+# CERT_PATH = os.path.join(CERT_FOLDER, 'certificate.pem')
+# KEY_PATH = os.path.join(CERT_FOLDER, 'private.pem')
 
 @app.route('/')
 def index():
