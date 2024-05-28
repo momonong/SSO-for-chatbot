@@ -12,4 +12,5 @@ def index():
     return '歡迎來到我的Flask應用！'
 
 if __name__ == '__main__':
-    app.run(ssl_context=(CERT_PATH, KEY_PATH), debug=True, host='0.0.0.0', port=8080)
+    app.run(host='0.0.0.0', port=8080, debug=True)
+    # app.run(ssl_context=(CERT_PATH, KEY_PATH), debug=True, host='0.0.0.0', port=8080)
