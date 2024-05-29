@@ -3,7 +3,7 @@ oia_ncku_osss
 2.系統中文名稱 :
 國際處機器人單一登入
 3.系統伺服器回傳網址：
-login.nckuoiachatbot.software
+chatbot.oia.ncku.edu.tw
 4.client-id: 16ea6d31-ca5d-4f39-99f3-bcdd801121fb
 
 
@@ -17,5 +17,5 @@ $oauth2_clients['oia_ncku_osss'] = array(
     'client_id' => '16ea6d31-ca5d-4f39-99f3-bcdd801121fb',
     'client_secret' => 'oia_ncku_osss',
     'authorization_endpoint' => $server_url . '/adfs/oauth2/authorize',
-    'redirect_uri' => 'https://login.nckuoiachatbot.software',
+    'redirect_uri' => 'https://chatbot.oia.ncku.edu.tw/callback',
 );
