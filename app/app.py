@@ -17,11 +17,6 @@ AUTHORIZATION_BASE_URL = os.getenv('OAUTH2_AUTHORIZATION_URL')
 TOKEN_URL = os.getenv('OAUTH2_TOKEN_URL')
 REDIRECT_URI = os.getenv('OAUTH2_REDIRECT_URI')
 
-# SSL 證書路徑
-# CERT_FOLDER = os.path.abspath('/etc/ssl/')
-# CERT_PATH = os.path.join(CERT_FOLDER, 'certificate.pem')
-# KEY_PATH = os.path.join(CERT_FOLDER, 'private.pem')
-
 @app.route('/')
 def index():
     # 啟動 OAuth 登入流程
@@ -76,7 +71,6 @@ def submit_info():
     return '資料提交成功！'
 
 if __name__ == '__main__':
-    # app.run(ssl_context=(CERT_PATH, KEY_PATH), debug=True, host='0.0.0.0', port=8080)
     print('2')
     app.run(debug=True, host='0.0.0.0', port=8080)
     print('3')
