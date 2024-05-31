@@ -17,30 +17,30 @@ AUTHORIZATION_BASE_URL = os.getenv('OAUTH2_AUTHORIZATION_URL')
 TOKEN_URL = os.getenv('OAUTH2_TOKEN_URL')
 REDIRECT_URI = os.getenv('OAUTH2_REDIRECT_URI')
 
-@app.route('/')
-def index():
-    # 啟動 OAuth 登入流程
-    print('22')
-    ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
-    print(ncku.headers)
-    print(ncku.max_redirects)
-    authorization_url, _ = ncku.authorization_url(AUTHORIZATION_BASE_URL)
-    print('34')
-    # 將用戶重定向到 NCKU 進行認證
-    return redirect(authorization_url)
-
 # @app.route('/')
 # def index():
-#     # 顯示一個包含登入按鈕的頁面
-#     return render_template('login.html')
-
-# @app.route('/login')
-# def login():
 #     # 啟動 OAuth 登入流程
+#     print('22')
 #     ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
+#     print(ncku.headers)
+#     print(ncku.max_redirects)
 #     authorization_url, _ = ncku.authorization_url(AUTHORIZATION_BASE_URL)
+#     print('34')
 #     # 將用戶重定向到 NCKU 進行認證
 #     return redirect(authorization_url)
+
+@app.route('/')
+def index():
+    # 顯示一個包含登入按鈕的頁面
+    return render_template('login.html')
+
+@app.route('/login')
+def login():
+    # 啟動 OAuth 登入流程
+    ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
+    authorization_url, _ = ncku.authorization_url(AUTHORIZATION_BASE_URL)
+    # 將用戶重定向到 NCKU 進行認證
+    return redirect(authorization_url)
 
 @app.route('/callback')
 def callback():
