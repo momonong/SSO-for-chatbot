@@ -1,5 +1,3 @@
-# poetry add pysaml2 requests_oauthlib
-
 from flask import Flask, redirect, request, render_template, session, url_for
 from requests_oauthlib import OAuth2Session
 from dotenv import load_dotenv
@@ -8,7 +6,7 @@ import os
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # 用於安全地簽名session
 
-load_dotenv()
+load_dotenv()  # 加載 .env 文件中的變量
 
 # OAuth 配置
 CLIENT_ID = os.getenv('OAUTH2_CLIENT_ID')
@@ -17,38 +15,29 @@ AUTHORIZATION_BASE_URL = os.getenv('OAUTH2_AUTHORIZATION_URL')
 TOKEN_URL = os.getenv('OAUTH2_TOKEN_URL')
 REDIRECT_URI = os.getenv('OAUTH2_REDIRECT_URI')
 
-# @app.route('/')
-# def index():
-#     # 啟動 OAuth 登入流程
-#     print('22')
-#     ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
-#     print(ncku.headers)
-#     print(ncku.max_redirects)
-#     authorization_url, _ = ncku.authorization_url(AUTHORIZATION_BASE_URL)
-#     print('34')
-#     # 將用戶重定向到 NCKU 進行認證
-#     return redirect(authorization_url)
-
 @app.route('/')
 def index():
-    # 顯示一個包含登入按鈕的頁面
-    return render_template('login.html')
-
-@app.route('/login')
-def login():
     # 啟動 OAuth 登入流程
     ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
-    authorization_url, _ = ncku.authorization_url(AUTHORIZATION_BASE_URL)
-    # 將用戶重定向到 NCKU 進行認證
+    authorization_url, state = ncku.authorization_url(AUTHORIZATION_BASE_URL)
+    # 將狀態存儲在 session 中以進行後續驗證
+    session['oauth_state'] = state
     return redirect(authorization_url)
 
 @app.route('/callback')
 def callback():
-    ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
-    ncku.fetch_token(TOKEN_URL, client_secret=CLIENT_SECRET, authorization_response=request.url)
+    # 檢查 session 中是否有狀態
+    if 'oauth_state' not in session:
+        return 'State not found in session', 400
+    
+    ncku = OAuth2Session(CLIENT_ID, state=session['oauth_state'], redirect_uri=REDIRECT_URI)
+    try:
+        token = ncku.fetch_token(TOKEN_URL, client_secret=CLIENT_SECRET, authorization_response=request.url)
+    except Exception as e:
+        return f'Failed to fetch token: {str(e)}', 400
+
     # 存取 token 資料到 session 中，可用於後續認證
-    session['oauth_token'] = ncku.token
-    # 重定向到表單填寫頁面
+    session['oauth_token'] = token
     return redirect(url_for('fill_form'))
 
 @app.route('/fill-form')
@@ -71,6 +60,4 @@ def submit_info():
     return '資料提交成功！'
 
 if __name__ == '__main__':
-    print('2')
     app.run(debug=True, host='0.0.0.0', port=8080)
-    print('3')
