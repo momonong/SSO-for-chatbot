@@ -2,6 +2,10 @@ from flask import Flask, redirect, request, render_template, session, url_for
 from requests_oauthlib import OAuth2Session
 from dotenv import load_dotenv
 import os
+import logging
+
+# 設置日誌記錄
+logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # 用於安全地簽名session
@@ -26,18 +30,19 @@ def index():
 
 @app.route('/callback')
 def callback():
-    # 檢查 session 中是否有狀態
     if 'oauth_state' not in session:
+        app.logger.debug('State not found in session')
         return 'State not found in session', 400
-    
+
     ncku = OAuth2Session(CLIENT_ID, state=session['oauth_state'], redirect_uri=REDIRECT_URI)
     try:
         token = ncku.fetch_token(TOKEN_URL, client_secret=CLIENT_SECRET, authorization_response=request.url)
     except Exception as e:
+        app.logger.error(f'Failed to fetch token: {str(e)}')
         return f'Failed to fetch token: {str(e)}', 400
 
-    # 存取 token 資料到 session 中，可用於後續認證
     session['oauth_token'] = token
+    app.logger.debug(f'Token: {token}')
     return redirect(url_for('fill_form'))
 
 @app.route('/fill-form')
