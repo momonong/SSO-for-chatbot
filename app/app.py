@@ -21,28 +21,30 @@ REDIRECT_URI = os.getenv('OAUTH2_REDIRECT_URI')
 
 @app.route('/')
 def index():
-    # 啟動 OAuth 登入流程
+    print(f'CLIENT_ID: {CLIENT_ID}')
+    print(f'CLIENT_SECRET: {CLIENT_SECRET}')
+    print(f'AUTHORIZATION_BASE_URL: {AUTHORIZATION_BASE_URL}')
+    print(f'TOKEN_URL: {TOKEN_URL}')
+    print(f'REDIRECT_URI: {REDIRECT_URI}')
+    
     ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
     authorization_url, state = ncku.authorization_url(AUTHORIZATION_BASE_URL)
-    # 將狀態存儲在 session 中以進行後續驗證
     session['oauth_state'] = state
     return redirect(authorization_url)
 
+
 @app.route('/callback')
 def callback():
-    if 'oauth_state' not in session:
-        app.logger.debug('State not found in session')
-        return 'State not found in session', 400
-
-    ncku = OAuth2Session(CLIENT_ID, state=session['oauth_state'], redirect_uri=REDIRECT_URI)
+    ncku = OAuth2Session(CLIENT_ID, state=session.get('oauth_state'), redirect_uri=REDIRECT_URI)
     try:
+        print(f'Authorization response: {request.url}')
         token = ncku.fetch_token(TOKEN_URL, client_secret=CLIENT_SECRET, authorization_response=request.url)
+        print(f'Token: {token}')
     except Exception as e:
-        app.logger.error(f'Failed to fetch token: {str(e)}')
+        print(f'Error fetching token: {str(e)}')
         return f'Failed to fetch token: {str(e)}', 400
 
     session['oauth_token'] = token
-    app.logger.debug(f'Token: {token}')
     return redirect(url_for('fill_form'))
 
 @app.route('/fill-form')
