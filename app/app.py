@@ -19,8 +19,13 @@ AUTHORIZATION_BASE_URL = os.getenv('OAUTH2_AUTHORIZATION_URL')
 TOKEN_URL = os.getenv('OAUTH2_TOKEN_URL')
 REDIRECT_URI = os.getenv('OAUTH2_REDIRECT_URI')
 
+def clear_token():
+    if 'oauth_token' in session:
+        del session['oauth_token']
+
 @app.route('/')
 def index():
+    clear_token()  # 清除舊的token
     print(f'CLIENT_ID: {CLIENT_ID}')
     print(f'CLIENT_SECRET: {CLIENT_SECRET}')
     print(f'AUTHORIZATION_BASE_URL: {AUTHORIZATION_BASE_URL}')
@@ -31,7 +36,6 @@ def index():
     authorization_url, state = ncku.authorization_url(AUTHORIZATION_BASE_URL)
     session['oauth_state'] = state
     return redirect(authorization_url)
-
 
 @app.route('/callback')
 def callback():
@@ -52,7 +56,8 @@ def fill_form():
     # 檢查 session 中是否有用戶資訊
     if 'oauth_token' not in session:
         return 'User info not found in the session', 400
-    return render_template('fill_form.html', user_info=session.get('oauth_token'))
+    user_info = session.get('oauth_token')
+    return render_template('fill_form.html', user_info=user_info)
 
 @app.route('/submit-info', methods=['POST'])
 def submit_info():
