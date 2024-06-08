@@ -20,6 +20,7 @@ AUTHORIZATION_BASE_URL = os.getenv("OAUTH2_AUTHORIZATION_URL")
 TOKEN_URL = os.getenv("OAUTH2_TOKEN_URL")
 REDIRECT_URI = os.getenv("OAUTH2_REDIRECT_URI")
 RESOURCE = "https://chatbot.oia.ncku.edu.tw/callback"  # Update with your actual resource identifier
+USER_INFO_URL = "https://fs.ncku.edu.tw/adfs/userinfo"
 
 
 def clear_token():
@@ -67,17 +68,36 @@ def callback():
         return f"Failed to fetch token: {response.json()}", 400
 
 
-@app.route("/fill-form")
+# @app.route("/fill-form")
+# def fill_form():
+#     # 檢查 session 中是否有用戶資訊
+#     if "access_token" not in session:
+#         return (
+#             f'User info not found in the session \n{session["access_token"]}, {session}',
+#             400,
+#         )
+#     user_info = session.get("oauth_token")
+#     print("\n\n\n\nuserinfo:", user_info)
+#     return render_template("fill_form.html", user_info=user_info)
+
+@app.route('/fill-form')
 def fill_form():
-    # 檢查 session 中是否有用戶資訊
-    if "access_token" not in session:
-        return (
-            f'User info not found in the session \n{session["access_token"]}, {session}',
-            400,
-        )
-    user_info = session.get("oauth_token")
-    print("\n\n\n\nuserinfo:", user_info)
-    return render_template("fill_form.html", user_info=user_info)
+    if 'access_token' not in session:
+        return 'User info not found in the session', 400
+    
+    token = session.get('access_token')
+    user_info = get_user_info(token)
+    return render_template('fill_form.html', user_info=user_info)
+
+
+def get_user_info(token):
+    headers = {"Authorization": f"Bearer {token['access_token']}"}
+    response = requests.get(USER_INFO_URL, headers=headers)
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print(f"Error fetching user info: {response.status_code}, {response.text}")
+        return {}
 
 
 @app.route("/submit-info", methods=["POST"])
