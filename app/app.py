@@ -65,7 +65,7 @@ def callback():
 @app.route('/fill-form')
 def fill_form():
     # 檢查 session 中是否有用戶資訊
-    if 'oauth_token' not in session:
+    if session['oauth_token'] not in session:
         return 'User info not found in the session', 400
     user_info = session.get('oauth_token')
     return render_template('fill_form.html', user_info=user_info)
