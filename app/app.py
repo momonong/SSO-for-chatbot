@@ -58,14 +58,15 @@ def callback():
         print(f'Error fetching token: {str(e)}')
         return f'Failed to fetch token: {str(e)}', 400
 
-    session['oauth_token'] = token
+    # session['oauth_token'] = token
+    session['access_token'] = token
     return redirect(url_for('fill_form'))
 
 
 @app.route('/fill-form')
 def fill_form():
     # 檢查 session 中是否有用戶資訊
-    if session['oauth_token'] not in session:
+    if session['access_token'] not in session:
         return 'User info not found in the session', 400
     user_info = session.get('oauth_token')
     return render_template('fill_form.html', user_info=user_info)
