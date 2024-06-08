@@ -41,7 +41,7 @@ def callback():
     
     # Build request body
     data = {
-        'grant_type': 'authorization_code',
+        'grant_type': authorization_code,
         'code': authorization_code,
         'redirect_uri': REDIRECT_URI,
         'client_id': CLIENT_ID,
