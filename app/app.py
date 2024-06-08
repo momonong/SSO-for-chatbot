@@ -19,8 +19,8 @@ CLIENT_SECRET = os.getenv("OAUTH2_CLIENT_SECRET")
 AUTHORIZATION_BASE_URL = os.getenv("OAUTH2_AUTHORIZATION_URL")
 TOKEN_URL = os.getenv("OAUTH2_TOKEN_URL")
 REDIRECT_URI = os.getenv("OAUTH2_REDIRECT_URI")
-RESOURCE = "https://chatbot.oia.ncku.edu.tw/callback"  # Update with your actual resource identifier
-USER_INFO_URL = "https://fs.ncku.edu.tw/adfs/userinfo"
+RESOURCE = os.getenv("OAUTH2_RESOURCE")
+USER_INFO_URL = "https://fs.ncku.edu.tw/adfs/oauth2/user_identity"
 
 
 def clear_token():
