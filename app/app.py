@@ -46,7 +46,7 @@ def callback():
     ncku = OAuth2Session(CLIENT_ID, state=session.get('oauth_state'), redirect_uri=REDIRECT_URI)
     try:
         print(f'Authorization response: {request.url}')
-        token = ncku.fetch_token(TOKEN_URL, client_secret=CLIENT_SECRET, authorization_response=request.url)
+        token = ncku.fetch_token(TOKEN_URL, client_secret=CLIENT_SECRET, authorization_response=request.url, code=code, include_client_id=True, client_id=CLIENT_ID)
         print(f'Token: {token}')
     except Exception as e:
         print(f'Error fetching token: {str(e)}')
