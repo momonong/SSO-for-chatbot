@@ -72,4 +72,5 @@ def submit_info():
     return '資料提交成功！'
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=8080)
+    context = ('/etc/letsencrypt/live/chatbot.oia.ncku.edu.tw/fullchain.pem', '/etc/letsencrypt/live/chatbot.oia.ncku.edu.tw/privkey.pem')
+    app.run(debug=True, host='0.0.0.0', port=8080, ssl_context=context)
