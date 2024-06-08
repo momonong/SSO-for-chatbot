@@ -8,7 +8,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
-# app.secret_key = os.urandom(24)  # 用於安全地簽名session
+app.secret_key = os.urandom(24)  # 用於安全地簽名session
 
 load_dotenv()  # 加載 .env 文件中的變量
 
