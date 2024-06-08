@@ -86,7 +86,9 @@ def fill_form():
         return 'User info not found in the session', 400
     
     token = session.get('access_token')
+    print(f"\n\n\nToken: {token}")
     user_info = get_user_info(token)
+    print(f"\n\n\nUser info: {user_info}")
     return render_template('fill_form.html', user_info=user_info)
 
 
