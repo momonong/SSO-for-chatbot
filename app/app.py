@@ -20,7 +20,7 @@ AUTHORIZATION_BASE_URL = os.getenv("OAUTH2_AUTHORIZATION_URL")
 TOKEN_URL = os.getenv("OAUTH2_TOKEN_URL")
 REDIRECT_URI = os.getenv("OAUTH2_REDIRECT_URI")
 RESOURCE = os.getenv("OAUTH2_RESOURCE")
-USER_INFO_URL = "https://fs.ncku.edu.tw/adfs/oauth2/user_info"
+USER_INFO_URL = "https://fs.ncku.edu.tw/adfs/userinfo"  # 更新的 UserInfo 端點
 
 
 def clear_token():
@@ -80,16 +80,17 @@ def callback():
 #     print("\n\n\n\nuserinfo:", user_info)
 #     return render_template("fill_form.html", user_info=user_info)
 
-@app.route('/fill-form')
+
+@app.route("/fill-form")
 def fill_form():
-    if 'access_token' not in session:
-        return 'User info not found in the session', 400
-    
-    token = session.get('access_token')
+    if "access_token" not in session:
+        return "User info not found in the session", 400
+
+    token = session.get("access_token")
     print(f"\n\n\nToken: {token}")
     user_info = get_user_info(token)
     print(f"\n\n\nUser info: {user_info}")
-    return render_template('fill_form.html', user_info=user_info)
+    return render_template("fill_form.html", user_info=user_info)
 
 
 def get_user_info(token):
