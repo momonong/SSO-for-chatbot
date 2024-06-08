@@ -35,7 +35,7 @@ def index():
     print(f'REDIRECT_URI: {REDIRECT_URI}')
     
     ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
-    authorization_url, state = ncku.authorization_url(AUTHORIZATION_BASE_URL, resource=RESOURCE, client_id=CLIENT_ID, redirect_uri=REDIRECT_URI)
+    authorization_url, state = ncku.authorization_url(AUTHORIZATION_BASE_URL, resource=RESOURCE)
     session['oauth_state'] = state
     return redirect(authorization_url)
 
