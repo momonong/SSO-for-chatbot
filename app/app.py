@@ -56,11 +56,11 @@ def callback():
         token = response.json()
         # print(f'Token: {token}')
         session['access_token'] = token
+        print(response.json())
         return redirect(url_for('fill_form'))
     else:
         # print(f'Error fetching token: {response.json()}')
         return f'Failed to fetch token: {response.json()}', 400
-
 
 @app.route('/fill-form')
 def fill_form():
