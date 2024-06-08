@@ -28,12 +28,6 @@ def clear_token():
 @app.route('/')
 def index():
     clear_token()  # 清除舊的token
-    print(f'CLIENT_ID: {CLIENT_ID}')
-    print(f'CLIENT_SECRET: {CLIENT_SECRET}')
-    print(f'AUTHORIZATION_BASE_URL: {AUTHORIZATION_BASE_URL}')
-    print(f'TOKEN_URL: {TOKEN_URL}')
-    print(f'REDIRECT_URI: {REDIRECT_URI}')
-    
     ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
     authorization_url, state = ncku.authorization_url(AUTHORIZATION_BASE_URL, resource=RESOURCE)
     session['oauth_state'] = state
@@ -67,7 +61,7 @@ def callback():
 def fill_form():
     # 檢查 session 中是否有用戶資訊
     if session['access_token'] not in session:
-        return 'User info not found in the session', 400
+        return f'User info not found in the session \n{session['access_token']}, {session}', 400
     user_info = session.get('oauth_token')
     return render_template('fill_form.html', user_info=user_info)
 
