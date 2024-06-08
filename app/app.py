@@ -37,7 +37,7 @@ def index():
 @app.route('/callback')
 def callback():
     authorization_code = request.args.get('code')
-    print(f'Authorization code: {authorization_code}')
+    # print(f'Authorization code: {authorization_code}')
     
     # Build request body
     data = {
@@ -54,11 +54,11 @@ def callback():
     # Check request result
     if response.status_code == 200:
         token = response.json()
-        print(f'Token: {token}')
+        # print(f'Token: {token}')
         session['access_token'] = token
         return redirect(url_for('fill_form'))
     else:
-        print(f'Error fetching token: {response.json()}')
+        # print(f'Error fetching token: {response.json()}')
         return f'Failed to fetch token: {response.json()}', 400
 
 
@@ -68,6 +68,7 @@ def fill_form():
     if 'access_token' not in session:
         return f'User info not found in the session \n{session["access_token"]}, {session}', 400
     user_info = session.get('oauth_token')
+    print(user_info)
     return render_template('fill_form.html', user_info=user_info)
 
 @app.route('/submit-info', methods=['POST'])
