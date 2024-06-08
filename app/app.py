@@ -41,6 +41,8 @@ def index():
 
 @app.route('/callback')
 def callback():
+    code = request.args.get('code')
+    print(code)
     ncku = OAuth2Session(CLIENT_ID, state=session.get('oauth_state'), redirect_uri=REDIRECT_URI)
     try:
         print(f'Authorization response: {request.url}')
