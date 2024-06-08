@@ -42,11 +42,17 @@ def index():
 @app.route('/callback')
 def callback():
     code = request.args.get('code')
-    print(code)
-    ncku = OAuth2Session(CLIENT_ID, state=session.get('oauth_state'), redirect_uri=REDIRECT_URI)
+    print(f'Authorization code: {code}')
     try:
         print(f'Authorization response: {request.url}')
-        token = ncku.fetch_token(TOKEN_URL, client_secret=CLIENT_SECRET, authorization_response=request.url, code=code, include_client_id=True, client_id=CLIENT_ID)
+        ncku = OAuth2Session(CLIENT_ID, state=session.get('oauth_state'), redirect_uri=REDIRECT_URI)
+        token = ncku.fetch_token(
+            TOKEN_URL,
+            client_id=CLIENT_ID,
+            client_secret=CLIENT_SECRET,
+            authorization_response=request.url,
+            include_client_id=True
+        )
         print(f'Token: {token}')
     except Exception as e:
         print(f'Error fetching token: {str(e)}')
@@ -54,6 +60,7 @@ def callback():
 
     session['oauth_token'] = token
     return redirect(url_for('fill_form'))
+
 
 @app.route('/fill-form')
 def fill_form():
