@@ -3,6 +3,7 @@ from requests_oauthlib import OAuth2Session
 from dotenv import load_dotenv
 import os
 import logging
+import requests
 
 # 設置日誌記錄
 logging.basicConfig(level=logging.DEBUG)
@@ -35,26 +36,30 @@ def index():
 
 @app.route('/callback')
 def callback():
-    code = request.args.get('code')
-    print(f'Authorization code: {code}')
-    try:
-        print(f'Authorization response: {request.url}')
-        ncku = OAuth2Session(CLIENT_ID, state=session.get('oauth_state'), redirect_uri=REDIRECT_URI)
-        token = ncku.fetch_token(
-            TOKEN_URL,
-            client_id=CLIENT_ID,
-            client_secret=CLIENT_SECRET,
-            authorization_response=request.url,
-            include_client_id=True
-        )
-        print(f'Token: {token}')
-    except Exception as e:
-        print(f'Error fetching token: {str(e)}')
-        return f'Failed to fetch token: {str(e)}', 400
+    authorization_code = request.args.get('code')
+    print(f'Authorization code: {authorization_code}')
+    
+    # Build request body
+    data = {
+        'grant_type': 'authorization_code',
+        'code': authorization_code,
+        'redirect_uri': REDIRECT_URI,
+        'client_id': CLIENT_ID,
+        'client_secret': CLIENT_SECRET
+    }
 
-    # session['oauth_token'] = token
-    session['access_token'] = token
-    return redirect(url_for('fill_form'))
+    # Send POST request
+    response = requests.post(TOKEN_URL, data=data)
+
+    # Check request result
+    if response.status_code == 200:
+        token = response.json()
+        print(f'Token: {token}')
+        session['access_token'] = token
+        return redirect(url_for('fill_form'))
+    else:
+        print(f'Error fetching token: {response.json()}')
+        return f'Failed to fetch token: {response.json()}', 400
 
 
 @app.route('/fill-form')
