@@ -68,7 +68,7 @@ def fill_form():
     if 'access_token' not in session:
         return f'User info not found in the session \n{session["access_token"]}, {session}', 400
     user_info = session.get('oauth_token')
-    print(user_info)
+    print('\n\n\n\nuserinfo:', user_info)
     return render_template('fill_form.html', user_info=user_info)
 
 @app.route('/submit-info', methods=['POST'])
