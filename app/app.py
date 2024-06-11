@@ -30,27 +30,30 @@ def clear_token():
     if "oauth_token" in session:
         del session["oauth_token"]
 
-def logout():
-    # Step 1: 清除此APP New 出來的SESSION
-    session.clear()
-    
-    # Step 2: 清除 oauth 在client端 New 出來的SESSION
-    clear_token()
-    
-    # Step 3: 清除oauth server 端的 Session 
-    print("Logging out...")
-    response = redirect(LOGOUT_URL)
-    response.autoclose = True
-    return response
+# @app.route("/")
+# def index():
+#     clear_token()  # 清除舊的token
+#     ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
+#     authorization_url, state = ncku.authorization_url(AUTHORIZATION_BASE_URL, resource=RESOURCE)
+#     session["oauth_state"] = state
+#     return redirect(authorization_url)
 
 @app.route("/")
 def index():
-    clear_token()  # 清除舊的token
+    # Clear existing session and token
+    session.clear()
+    clear_token()
+    
+    # Perform logout
+    logout_redirect = f"https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply={REDIRECT_URI}"
+    return redirect(logout_redirect)
+
+@app.route("/start-auth")
+def start_auth():
     ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
     authorization_url, state = ncku.authorization_url(AUTHORIZATION_BASE_URL, resource=RESOURCE)
     session["oauth_state"] = state
     return redirect(authorization_url)
-
 @app.route("/callback")
 def callback():
     authorization_code = request.args.get("code")
