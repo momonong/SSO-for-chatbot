@@ -1,9 +1,12 @@
 from flask import Flask, redirect, request, render_template, session, url_for
 from requests_oauthlib import OAuth2Session
 from dotenv import load_dotenv
-import os
-import logging
 import requests
+import logging
+import base64
+import json
+import os
+
 
 # 設置日誌記錄
 logging.basicConfig(level=logging.DEBUG)
@@ -91,6 +94,28 @@ def fill_form():
     user_info = get_user_info(token)
     print(f"\n\n\nUser info: {user_info}")
     return render_template("fill_form.html", user_info=user_info)
+
+
+def decode_token(access_token):
+    # 解碼 access token，獲取 user info
+    try:
+        # 分割 token 並解碼
+        jwt_parts = access_token.split('.')
+        if len(jwt_parts) != 3:
+            raise ValueError("Invalid token format")
+        
+        # 解碼 payload 部分
+        payload_encoded = jwt_parts[1]
+        # 添加 base64 padding 如果缺失
+        payload_encoded += '=' * (4 - len(payload_encoded) % 4)
+        payload_decoded = base64.urlsafe_b64decode(payload_encoded)
+        
+        # 解析 JSON
+        payload = json.loads(payload_decoded)
+        return payload
+    except Exception as e:
+        print(f"Error decoding token: {str(e)}")
+        return {}
 
 
 def get_user_info(token):

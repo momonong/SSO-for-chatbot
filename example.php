@@ -448,3 +448,346 @@ $oauth2_client->clearToken();
 // Step 3. 清除oauth server 端的 Session 
 // 注意: wreply=你目前的App想要轉址的網址
 header("Location:https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply=https://xxxx.ncku.edu.tw");
+
+<?php
+
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+set_time_limit(0);
+error_reporting(E_ALL);
+
+class OAuth2_Client {
+    
+    protected $id = NULL;
+
+    protected $params = array(
+        'client_id' => NULL,
+        'token_endpoint' => NULL,
+        'authorization_endpoint' => NULL,
+        'redirect_uri' => NULL,
+        'resource' => NULL,
+    );
+
+    /**
+     * Associated array that keeps data about the access token.
+     */
+    protected $token = array(
+        'access_token' => NULL,
+        'expires_in' => NULL,
+        'token_type' => NULL,
+        'refresh_token' => NULL,
+        'expiration_time' => NULL,
+    );
+
+    /** Return the token array. */
+    function token() {
+        return $this->token;
+    }
+
+    public function __construct($params = NULL, $id = NULL) {
+        if ($params)
+            $this->params = $params + $this->params;
+
+        if (!$id) {
+            $id = md5($this->params['token_endpoint']
+                    . $this->params['client_id']
+            );
+        }
+        $this->id = $id;
+
+        // Get the token data from the session, if it is stored there.
+        if (isset($_SESSION['oauth2_client']['token'][$this->id])) {
+            $this->token = $_SESSION['oauth2_client']['token'][$this->id] + $this->token;
+        }
+    }
+
+    /**
+     * Clear the token data from the session.
+     */
+    public function clearToken() {
+        if (isset($_SESSION['oauth2_client']['token'][$this->id])) {
+            unset($_SESSION['oauth2_client']['token'][$this->id]);
+        }
+        $this->token = array(
+            'access_token' => NULL,
+            'expires_in' => NULL,
+            'token_type' => NULL,
+            'refresh_token' => NULL,
+            'expiration_time' => NULL,
+        );
+    }
+
+    public function getAccessToken($redirect = TRUE) {
+//        echo 'getAccessToken';
+        $expiration_time = $this->token['expiration_time'];
+        if ($expiration_time > (time() + 10)) {
+//            echo 'getAccessToken -> expiration_time=' . $expiration_time . "vs" . time() + 10 .  "<br>\n";
+            // The existing token can still be used.
+            return $this->token['access_token'];
+        }
+        try {
+            if ($redirect) {
+//                echo "getTokenServerSide<br>";
+                $token = $this->getTokenServerSide();
+            } else {
+                $this->clearToken();
+                return NULL;
+            } 
+        }catch (Exception $e) {
+//            throw new Exception("Unknown token !!");
+//             echo $e->getMessage();
+            return NULL;
+        }
+
+//            print_r($token);
+        
+        if(isset($token['access_token'])) {
+           
+            $token['expiration_time'] = $_SERVER['REQUEST_TIME'] + $token['expires_in'];
+
+    //        echo "expiration_time=" . $token['expiration_time']  ."<br>" ;
+
+            // Store the token (on session as well).
+            $this->token = $token;
+            $_SESSION['oauth2_client']['token'][$this->id] = $token;
+
+            return $token['access_token'];
+        }else{
+            return NULL;
+        }
+    }
+    
+    public function getUserIdentity($accesstoken = NULL) {
+        if (!isset($accesstoken)) {
+            $accesstoken = $this->token['access_token'];
+        }
+
+        $jwt_arr = explode('.', $accesstoken);
+
+//    $rps_str = str_replace(" ", "+" ,$jwt_arr[1]);
+        $jwt_decoded = base64_decode($jwt_arr[1]);
+//            $return = base64_decode($jwt_decoded);
+//    print_r($jwt_decoded);
+//    exit;
+        $rtn = json_decode($jwt_decoded, TRUE);
+        
+        return $rtn;
+
+    }
+
+    protected function getTokenRefreshToken() {
+//        echo "getTokenRefreshToken";
+        if (!$this->token['refresh_token']) {
+            throw new Exception('There is no refresh_token.');
+        }
+        return $this->getToken(array(
+                    'client_id' => $this->params['client_id'],
+                    'grant_type' => 'authorization_code',
+                    'code' => $_GET['code'],
+                    'refresh_token' => $this->token['refresh_token'],
+        ));
+    }
+
+    protected function getTokenServerSide() {
+        if (!isset($_GET['code'])) {
+            $url = $this->getAuthenticationUrl();
+            header('Location: ' . $url, TRUE, 302);
+        } else {
+            return $this->getToken(array(
+                        'client_id' => $this->params['client_id'],
+                        'grant_type' => 'authorization_code',
+                        'code' => $_GET['code'],
+                        'redirect_uri' => $this->params['redirect_uri'],
+            ));
+        }
+    }
+
+    /**
+     * Return the authentication url (used in case of the server-side flow).
+     */
+    public function getAuthenticationUrl() {
+        $state = md5(uniqid(rand(), TRUE));
+        $_SESSION['state'] = $state;
+        $query_params = array(
+            'response_type' => 'code',
+            'client_id' => $this->params['client_id'],
+            'redirect_uri' => $this->params['redirect_uri'],
+            'state' => $state,
+            'resource' => $this->params['resource'],
+        );
+
+        $endpoint = $this->params['authorization_endpoint'];
+//        self::setRedirect($state);
+//        echo $endpoint;
+//        exit;
+        return $endpoint . '?' . http_build_query($query_params);
+    }
+
+    /**
+     * Save the information needed for redirection after getting the token.
+     */
+    public static function setRedirect($state, $redirect = NULL) {
+//        if ($redirect == NULL) {
+//            $redirect = array(
+//                'uri' => $_GET['q'],
+//                'params' => get_query_parameters(),
+//                'client' => 'oauth2_client',
+//            );
+//        }
+//        if (!isset($redirect['client'])) {
+//            $redirect['client'] = 'external';
+//        }
+        $_SESSION['oauth2_client']['redirect'][$state] = $redirect;
+    }
+
+    /**
+     * Redirect to the original path.
+     *
+     * Redirects are registered with OAuth2\Client::setRedirect()
+     * The redirect contains the url to go to and the parameters
+     * to be sent to it.
+     */
+    public static function redirect($clean = TRUE) {
+//        if (!isset($_REQUEST['state']))
+//            return;
+//        $state = $_REQUEST['state'];
+//
+//        if (!isset($_SESSION['oauth2_client']['redirect'][$state]))
+//            return;
+//        $redirect = $_SESSION['oauth2_client']['redirect'][$state];
+//
+//        // We don't expect a 'destination' query argument comming from the oauth2 server.
+//        if (isset($_GET['destination']))
+//            unset($_GET['destination']);
+//
+//        if ($redirect['client'] != 'oauth2_client') {
+//            unset($_SESSION['oauth2_client']['redirect'][$state]);
+//            drupal_goto($redirect['uri'], array('query' => $redirect['params'] + $_REQUEST));
+//        } else {
+//            if ($clean) {
+//                unset($_SESSION['oauth2_client']['redirect'][$state]);
+//                unset($_REQUEST['code']);
+//                unset($_REQUEST['state']);
+//            }
+//            drupal_goto($redirect['uri'], array('query' => $redirect['params'] + $_REQUEST));
+//        }
+    }
+
+    /**
+     * Get and return an access token for the grant_type given in $params.
+     */
+    protected function getToken($data) {
+//        $token_endpoint = $this->params['token_endpoint'];
+        $token_endpoint = $this->params['token_endpoint'];
+        
+//        print_r($data);
+        
+        $responseJson = $this->postData($token_endpoint, $data);
+        
+        $responseArray = json_decode($responseJson, TRUE);
+//        print_r($result);
+        return $responseArray;
+    }
+
+    protected function postData($url, $postData) {
+        $ch = curl_init();
+        $query = "";
+
+        while (list($key, $val) = each($postData)) {
+            if (strlen($query) > 0) {
+                $query = $query . '&';
+            }
+            $query = $query . $key . '=' . $val;
+        }
+        
+//        print_r($postData);
+//        exit;
+        $options = array(
+            CURLOPT_URL => $url,
+            CURLOPT_SSL_VERIFYHOST => 0,
+            CURLOPT_SSL_VERIFYPEER => 0,
+            CURLOPT_FOLLOWLOCATION => 1,
+            CURLOPT_RETURNTRANSFER => TRUE,
+            CURLOPT_POST => TRUE,
+            CURLOPT_POSTFIELDS => $query);
+
+        curl_setopt_array($ch, $options);
+
+//        print_r($options);
+//        exit;
+
+        $response = curl_exec($ch);
+
+        if (FALSE === $response) {
+            $curlErr = curl_error($ch);
+            $curlErrNum = curl_errno($ch);
+
+            curl_close($ch);
+            throw new Exception($curlErr, $curlErrNum);
+//            echo $curlErr . "   " . $curlErrNum;
+        }
+        
+//        print_r($response);
+//        exit;
+        return $response;
+    }
+
+}
+
+public function getAccessToken($redirect = TRUE) {
+    //        echo 'getAccessToken';
+            $expiration_time = $this->token['expiration_time'];
+            if ($expiration_time > (time() + 10)) {
+    //            echo 'getAccessToken -> expiration_time=' . $expiration_time . "vs" . time() + 10 .  "<br>\n";
+                // The existing token can still be used.
+                return $this->token['access_token'];
+            }
+            try {
+                if ($redirect) {
+    //                echo "getTokenServerSide<br>";
+                    $token = $this->getTokenServerSide();
+                } else {
+                    $this->clearToken();
+                    return NULL;
+                } 
+            }catch (Exception $e) {
+    //            throw new Exception("Unknown token !!");
+    //             echo $e->getMessage();
+                return NULL;
+            }
+    
+    //            print_r($token);
+            
+            if(isset($token['access_token'])) {
+               
+                $token['expiration_time'] = $_SERVER['REQUEST_TIME'] + $token['expires_in'];
+    
+        //        echo "expiration_time=" . $token['expiration_time']  ."<br>" ;
+    
+                // Store the token (on session as well).
+                $this->token = $token;
+                $_SESSION['oauth2_client']['token'][$this->id] = $token;
+    
+                return $token['access_token'];
+            }else{
+                return NULL;
+            }
+        }
+
+        public function getUserIdentity($accesstoken = NULL) {
+            if (!isset($accesstoken)) {
+                $accesstoken = $this->token['access_token'];
+            }
+    
+            $jwt_arr = explode('.', $accesstoken);
+    
+    //    $rps_str = str_replace(" ", "+" ,$jwt_arr[1]);
+            $jwt_decoded = base64_decode($jwt_arr[1]);
+    //            $return = base64_decode($jwt_decoded);
+    //    print_r($jwt_decoded);
+    //    exit;
+            $rtn = json_decode($jwt_decoded, TRUE);
+            
+            return $rtn;
+    
+        }
