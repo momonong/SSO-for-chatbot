@@ -1,10 +1,12 @@
 from flask import Flask, redirect, request, render_template, session, url_for
 from requests_oauthlib import OAuth2Session
 from dotenv import load_dotenv
-from utils import clear_token, decode_token, normalize_name
 import requests
 import logging
 import os
+
+# Import utility functions
+from app.utils import clear_token, decode_token, normalize_name
 
 # 設置日誌記錄
 logging.basicConfig(level=logging.DEBUG)
@@ -84,7 +86,9 @@ def fill_form():
         return "User info not found in the session", 400
     token = session.get("access_token")
     user_info = decode_token(token["access_token"])
-    user_info['normalized_name'] = normalize_name(user_info['DisplayName'], user_info['studentStuEnName'])
+    user_info["normalized_name"] = normalize_name(
+        user_info["DisplayName"], user_info["studentStuEnName"]
+    )
     print(f"\n\n\nUser info: {user_info}\n\n\n")
     return render_template("fill_form.html", user_info=user_info)
 
