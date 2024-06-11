@@ -91,7 +91,7 @@ def fill_form():
 
     token = session.get("access_token")
     print(f"\n\n\nToken: {token}")
-    user_info = get_user_info(token)
+    user_info = decode_token(token['access_token'])
     print(f"\n\n\nUser info: {user_info}")
     return render_template("fill_form.html", user_info=user_info)
 
