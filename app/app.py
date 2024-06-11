@@ -1,7 +1,7 @@
 from flask import Flask, redirect, request, render_template, session, url_for
 from requests_oauthlib import OAuth2Session
 from dotenv import load_dotenv
-from app.utils import clear_token, decode_token
+from utils import clear_token, decode_token
 import requests
 import logging
 import os
