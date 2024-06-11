@@ -104,7 +104,8 @@ def submit_info():
     print("\n所有提交的表單數據:")
     for key, value in request.form.items():
         print(f"{key}: {value}")
-    return f"\n資料提交成功！\n\n姓名: {name} \n系級: {department} \n學號: {student_id} \n國籍: {nationality}"
+    # return f"\n資料提交成功！\n\n姓名: {name} \n系級: {department} \n學號: {student_id} \n國籍: {nationality}"
+    return redirect('https://liff.line.me/2002781978-z0OmQRAR')
 
 
 if __name__ == "__main__":
