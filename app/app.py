@@ -23,10 +23,25 @@ TOKEN_URL = os.getenv("OAUTH2_TOKEN_URL")
 REDIRECT_URI = os.getenv("OAUTH2_REDIRECT_URI")
 RESOURCE = os.getenv("OAUTH2_RESOURCE")
 USER_INFO_URL = "https://fs.ncku.edu.tw/adfs/userinfo"  # 更新的 UserInfo 端點
+LOGOUT_URL = "https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply=https://chatbot.oia.ncku.edu.tw"
+
 
 def clear_token():
     if "oauth_token" in session:
         del session["oauth_token"]
+
+def logout():
+    # Step 1: 清除此APP New 出來的SESSION
+    session.clear()
+    
+    # Step 2: 清除 oauth 在client端 New 出來的SESSION
+    clear_token()
+    
+    # Step 3: 清除oauth server 端的 Session 
+    print("Logging out...")
+    response = redirect(LOGOUT_URL)
+    response.autoclose = True
+    return response
 
 @app.route("/")
 def index():
@@ -95,4 +110,6 @@ def submit_info():
 
 
 if __name__ == "__main__":
+    with app.app_context():
+        logout()  # 在應用啟動時運行登出程序
     app.run(debug=True, host="0.0.0.0", port=8080)
