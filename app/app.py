@@ -105,7 +105,9 @@ def submit_info():
     for key, value in request.form.items():
         print(f"{key}: {value}")
     # return f"\n資料提交成功！\n\n姓名: {name} \n系級: {department} \n學號: {student_id} \n國籍: {nationality}"
-    return redirect('https://liff.line.me/2002781978-z0OmQRAR')
+    # return redirect('https://liff.line.me/2002781978-z0OmQRAR')
+    redirect_url = f"https://liff.line.me/2002781978-z0OmQRAR?name={name}&department={department}&student_id={student_id}&nationality={nationality}"
+    return redirect(redirect_url)
 
 
 if __name__ == "__main__":
