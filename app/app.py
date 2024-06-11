@@ -7,7 +7,6 @@ import base64
 import json
 import os
 
-
 # 設置日誌記錄
 logging.basicConfig(level=logging.DEBUG)
 
@@ -25,120 +24,74 @@ REDIRECT_URI = os.getenv("OAUTH2_REDIRECT_URI")
 RESOURCE = os.getenv("OAUTH2_RESOURCE")
 USER_INFO_URL = "https://fs.ncku.edu.tw/adfs/userinfo"  # 更新的 UserInfo 端點
 
-
 def clear_token():
     if "oauth_token" in session:
         del session["oauth_token"]
-
 
 @app.route("/")
 def index():
     clear_token()  # 清除舊的token
     ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
-    authorization_url, state = ncku.authorization_url(
-        AUTHORIZATION_BASE_URL, resource=RESOURCE
-    )
+    authorization_url, state = ncku.authorization_url(AUTHORIZATION_BASE_URL, resource=RESOURCE)
     session["oauth_state"] = state
     return redirect(authorization_url)
-
 
 @app.route("/callback")
 def callback():
     authorization_code = request.args.get("code")
-    # print(f'Authorization code: {authorization_code}')
-
-    # Build request body
-    data = {
-        "grant_type": "authorization_code",
-        "code": authorization_code,
-        "redirect_uri": REDIRECT_URI,
-        "client_id": CLIENT_ID,
-        "client_secret": CLIENT_SECRET,
-    }
-
-    # Send POST request
-    response = requests.post(TOKEN_URL, data=data)
-
-    # Check request result
-    if response.status_code == 200:
-        token = response.json()
-        # print(f'Token: {token}')
-        session["access_token"] = token
-        print(response.json())
-        return redirect(url_for("fill_form"))
-    else:
-        # print(f'Error fetching token: {response.json()}')
-        return f"Failed to fetch token: {response.json()}", 400
-
-
-# @app.route("/fill-form")
-# def fill_form():
-#     # 檢查 session 中是否有用戶資訊
-#     if "access_token" not in session:
-#         return (
-#             f'User info not found in the session \n{session["access_token"]}, {session}',
-#             400,
-#         )
-#     user_info = session.get("oauth_token")
-#     print("\n\n\n\nuserinfo:", user_info)
-#     return render_template("fill_form.html", user_info=user_info)
-
+    try:
+        data = {
+            "grant_type": "authorization_code",
+            "code": authorization_code,
+            "redirect_uri": REDIRECT_URI,
+            "client_id": CLIENT_ID,
+            "client_secret": CLIENT_SECRET,
+        }
+        response = requests.post(TOKEN_URL, data=data)
+        if response.status_code == 200:
+            token = response.json()
+            session["access_token"] = token
+            return redirect(url_for("fill_form"))
+        else:
+            return f"Failed to fetch token: {response.json()}", 400
+    except Exception as e:
+        return f"Failed to fetch token: {str(e)}", 400
 
 @app.route("/fill-form")
 def fill_form():
     if "access_token" not in session:
         return "User info not found in the session", 400
-
     token = session.get("access_token")
-    print(f"\n\n\nToken: {token}")
     user_info = decode_token(token['access_token'])
-    print(f"\n\n\nUser info: {user_info}")
+    print(f"\n\n\nUser info: {user_info}\n\n\n")
     return render_template("fill_form.html", user_info=user_info)
 
-
 def decode_token(access_token):
-    # 解碼 access token，獲取 user info
     try:
-        # 分割 token 並解碼
         jwt_parts = access_token.split('.')
         if len(jwt_parts) != 3:
             raise ValueError("Invalid token format")
-        
-        # 解碼 payload 部分
         payload_encoded = jwt_parts[1]
-        # 添加 base64 padding 如果缺失
         payload_encoded += '=' * (4 - len(payload_encoded) % 4)
         payload_decoded = base64.urlsafe_b64decode(payload_encoded)
-        
-        # 解析 JSON
         payload = json.loads(payload_decoded)
         return payload
     except Exception as e:
         print(f"Error decoding token: {str(e)}")
         return {}
 
-
-def get_user_info(token):
-    headers = {"Authorization": f"Bearer {token['access_token']}"}
-    response = requests.get(USER_INFO_URL, headers=headers)
-    if response.status_code == 200:
-        return response.json()
-    else:
-        print(f"Error fetching user info: {response.status_code}, {response.text}")
-        return {}
-
-
 @app.route("/submit-info", methods=["POST"])
 def submit_info():
-    # 從表單中獲取資料
-    name = request.form.get("name")
-    department = request.form.get("department")
-    student_id = request.form.get("student_id")
-    nationality = request.form.get("nationality")
-    # 處理這些資料，例如儲存到資料庫或發送到另一個 API
+    name = request.form.get("DisplayName")
+    department = request.form.get("studentdeptAllName")
+    student_id = request.form.get("studentidNo")
+    # nationality = request.form.get("nationality")
     print(f"姓名: {name}, 系級: {department}, 學號: {student_id}, 國籍: {nationality}")
-    # 回應提交成功的訊息
-    return "資料提交成功！"
+    
+    # 打印所有提交的表單數據
+    print("\n所有提交的表單數據:")
+    for key, value in request.form.items():
+        print(f"{key}: {value}")
 
 
 if __name__ == "__main__":
