@@ -102,16 +102,17 @@ def decode_token(access_token):
 
 @app.route("/submit-info", methods=["POST"])
 def submit_info():
-    name = request.form.get("DisplayName")
-    department = request.form.get("studentdeptAllName")
-    student_id = request.form.get("studentidNo")
-    # nationality = request.form.get("nationality")
-    print(f"姓名: {name}, 系級: {department}, 學號: {student_id}, 國籍: nationality")
+    name = request.form.get("name")
+    department = request.form.get("department")
+    student_id = request.form.get("student_id")
+    nationality = request.form.get("nationality")
+    print(f"姓名: {name}, 系級: {department}, 學號: {student_id}, 國籍: {nationality}")
     
     # 打印所有提交的表單數據
     print("\n所有提交的表單數據:")
     for key, value in request.form.items():
         print(f"{key}: {value}")
+    return f"資料提交成功！\n姓名: {name}, 系級: {department}, 學號: {student_id}, 國籍: {nationality}"
 
 
 if __name__ == "__main__":

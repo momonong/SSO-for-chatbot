@@ -12,15 +12,15 @@
         <form action="/submit-info" method="POST">
             <div class="form-group">
                 <label for="name">姓名 Name:</label>
-                <input type="text" class="form-control" id="name" name="name" value="{{ user_info['name'][0] }}" readonly>
+                <input type="text" class="form-control" id="name" name="name" value="{{ user_info['DisplayName'][0] }}" readonly>
             </div>
             <div class="form-group">
                 <label for="department">系級 Department and Grade:</label>
-                <input type="text" class="form-control" id="department" name="department" value="{{ user_info['department'][0] }}" readonly>
+                <input type="text" class="form-control" id="department" name="department" value="{{ user_info['studentdeptAllName'][0] }}" readonly>
             </div>
             <div class="form-group">
                 <label for="student_id">學號 Student ID Number:</label>
-                <input type="text" class="form-control" id="student_id" name="student_id" value="{{ user_info['student_id'][0] }}" readonly>
+                <input type="text" class="form-control" id="student_id" name="student_id" value="{{ user_info['studentidNo'][0] }}" readonly>
             </div>
             <div class="form-group">
                 <label for="nationality">國籍 Nationality:</label>
