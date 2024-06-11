@@ -1,10 +1,9 @@
 from flask import Flask, redirect, request, render_template, session, url_for
 from requests_oauthlib import OAuth2Session
 from dotenv import load_dotenv
+from app.utils import clear_token, decode_token
 import requests
 import logging
-import base64
-import json
 import os
 
 # 設置日誌記錄
@@ -22,13 +21,9 @@ AUTHORIZATION_BASE_URL = os.getenv("OAUTH2_AUTHORIZATION_URL")
 TOKEN_URL = os.getenv("OAUTH2_TOKEN_URL")
 REDIRECT_URI = os.getenv("OAUTH2_REDIRECT_URI")
 RESOURCE = os.getenv("OAUTH2_RESOURCE")
-USER_INFO_URL = "https://fs.ncku.edu.tw/adfs/userinfo"  # 更新的 UserInfo 端點
-LOGOUT_URL = "https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply=https://chatbot.oia.ncku.edu.tw"
+USER_INFO_URL = os.getenv("OAUTH2_USER_INFO_URL")
+LOGOUT_URL = os.getenv("OAUTH2_LOGOUT_URL")
 
-
-def clear_token():
-    if "oauth_token" in session:
-        del session["oauth_token"]
 
 # @app.route("/")
 # def index():
@@ -38,23 +33,28 @@ def clear_token():
 #     session["oauth_state"] = state
 #     return redirect(authorization_url)
 
+
 @app.route("/")
 def index():
     # Perform logout first
     logout_redirect = f"https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply=https://chatbot.oia.ncku.edu.tw/start-auth"
     return redirect(logout_redirect)
 
+
 @app.route("/start-auth")
 def start_auth():
     # Clear existing session and token after logout
     session.clear()
     clear_token()
-    
+
     # Start the OAuth authorization process
     ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
-    authorization_url, state = ncku.authorization_url(AUTHORIZATION_BASE_URL, resource=RESOURCE)
+    authorization_url, state = ncku.authorization_url(
+        AUTHORIZATION_BASE_URL, resource=RESOURCE
+    )
     session["oauth_state"] = state
     return redirect(authorization_url)
+
 
 @app.route("/callback")
 def callback():
@@ -77,28 +77,16 @@ def callback():
     except Exception as e:
         return f"Failed to fetch token: {str(e)}", 400
 
+
 @app.route("/fill-form")
 def fill_form():
     if "access_token" not in session:
         return "User info not found in the session", 400
     token = session.get("access_token")
-    user_info = decode_token(token['access_token'])
+    user_info = decode_token(token["access_token"])
     print(f"\n\n\nUser info: {user_info}\n\n\n")
     return render_template("fill_form.html", user_info=user_info)
 
-def decode_token(access_token):
-    try:
-        jwt_parts = access_token.split('.')
-        if len(jwt_parts) != 3:
-            raise ValueError("Invalid token format")
-        payload_encoded = jwt_parts[1]
-        payload_encoded += '=' * (4 - len(payload_encoded) % 4)
-        payload_decoded = base64.urlsafe_b64decode(payload_encoded)
-        payload = json.loads(payload_decoded)
-        return payload
-    except Exception as e:
-        print(f"Error decoding token: {str(e)}")
-        return {}
 
 @app.route("/submit-info", methods=["POST"])
 def submit_info():
@@ -106,13 +94,12 @@ def submit_info():
     department = request.form.get("department")
     student_id = request.form.get("student_id")
     nationality = request.form.get("nationality")
-    print(f"姓名: {name}, 系級: {department}, 學號: {student_id}, 國籍: {nationality}")
-    
+
     # 打印所有提交的表單數據
     print("\n所有提交的表單數據:")
     for key, value in request.form.items():
         print(f"{key}: {value}")
-    return f"資料提交成功！\n姓名: {name}, 系級: {department}, 學號: {student_id}, 國籍: {nationality}"
+    return f"\n資料提交成功！\n\n姓名: {name} \n系級: {department} \n學號: {student_id} \n國籍: {nationality}"
 
 
 if __name__ == "__main__":
