@@ -21,3 +21,14 @@ def decode_token(access_token):
     except Exception as e:
         print(f"Error decoding token: {str(e)}")
         return {}
+
+
+def normalize_name(display_name, student_en_name):
+    """
+    Normalize the display name and student English name to ensure consistent formatting.
+    """
+    if student_en_name.lower() not in display_name.lower():
+        full_name = f"{display_name} {student_en_name}"
+    else:
+        full_name = display_name
+    return full_name
