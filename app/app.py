@@ -40,20 +40,22 @@ def clear_token():
 
 @app.route("/")
 def index():
-    # Clear existing session and token
-    session.clear()
-    clear_token()
-    
-    # Perform logout
-    logout_redirect = f"https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply={REDIRECT_URI}"
+    # Perform logout first
+    logout_redirect = f"https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply=https://chatbot.oia.ncku.edu.tw/start-auth"
     return redirect(logout_redirect)
 
 @app.route("/start-auth")
 def start_auth():
+    # Clear existing session and token after logout
+    session.clear()
+    clear_token()
+    
+    # Start the OAuth authorization process
     ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
     authorization_url, state = ncku.authorization_url(AUTHORIZATION_BASE_URL, resource=RESOURCE)
     session["oauth_state"] = state
     return redirect(authorization_url)
+
 @app.route("/callback")
 def callback():
     authorization_code = request.args.get("code")
