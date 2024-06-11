@@ -86,7 +86,7 @@ def submit_info():
     department = request.form.get("studentdeptAllName")
     student_id = request.form.get("studentidNo")
     # nationality = request.form.get("nationality")
-    print(f"姓名: {name}, 系級: {department}, 學號: {student_id}, 國籍: {nationality}")
+    print(f"姓名: {name}, 系級: {department}, 學號: {student_id}, 國籍: nationality")
     
     # 打印所有提交的表單數據
     print("\n所有提交的表單數據:")
