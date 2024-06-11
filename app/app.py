@@ -113,6 +113,4 @@ def submit_info():
 
 
 if __name__ == "__main__":
-    with app.app_context():
-        logout()  # 在應用啟動時運行登出程序
     app.run(debug=True, host="0.0.0.0", port=8080)
