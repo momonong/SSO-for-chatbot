@@ -27,28 +27,21 @@ USER_INFO_URL = os.getenv("OAUTH2_USER_INFO_URL")
 LOGOUT_URL = os.getenv("OAUTH2_LOGOUT_URL")
 
 
-# @app.route("/")
-# def index():
-#     clear_token()  # 清除舊的token
-#     ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
-#     authorization_url, state = ncku.authorization_url(AUTHORIZATION_BASE_URL, resource=RESOURCE)
-#     session["oauth_state"] = state
-#     return redirect(authorization_url)
-
-
 @app.route("/")
 def index():
     # Perform logout first
     logout_redirect = f"https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply=https://chatbot.oia.ncku.edu.tw/start-auth"
-    return redirect(logout_redirect)
+    response = redirect(logout_redirect)
+
+    # Clear session and token after initiating logout
+    session.clear()
+    clear_token()
+
+    return response
 
 
 @app.route("/start-auth")
 def start_auth():
-    # Clear existing session and token after logout
-    session.clear()
-    clear_token()
-
     # Start the OAuth authorization process
     ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
     authorization_url, state = ncku.authorization_url(
