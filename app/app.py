@@ -60,31 +60,39 @@ def normalize_name(display_name, student_en_name):
 
 @app.route("/", methods=["GET"])
 def index():
+    # Clear session and token after initiating logout
+    session.clear()
+    clear_token()
+
     chat_id = request.args.get("chat_id")
     if chat_id:
         # 在這裡處理接收到的 chat_id，比如保存到數據庫或其他操作
         print(f"Received chat_id: {chat_id}")
+        session["chat_id"] = chat_id
     else:
         print(f"Did not receive chat_id")
+
     # Perform logout first
     logout_redirect = f"https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply=https://chatbot.oia.ncku.edu.tw/start-auth"
     response = redirect(logout_redirect)
-
-    # Clear session and token after initiating logout
-    session.clear()
-    clear_token()
 
     return response
 
 
 @app.route("/start-auth")
 def start_auth():
+    # 保留 chat_id
+    chat_id = session.get("chat_id")
+    if chat_id:
+        print(f"Using chat_id from session: {chat_id}")
+
     # Start the OAuth authorization process
     ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
     authorization_url, state = ncku.authorization_url(
         AUTHORIZATION_BASE_URL, resource=RESOURCE
     )
     session["oauth_state"] = state
+    session["chat_id"] = chat_id  # 再次保存 chat_id
     return redirect(authorization_url)
 
 
@@ -134,9 +142,9 @@ def submit_info():
     print("\n所有提交的表單數據:")
     for key, value in request.form.items():
         print(f"{key}: {value}")
-    # return f"\n資料提交成功！\n\n姓名: {name} \n系級: {department} \n學號: {student_id} \n國籍: {nationality}"
-    # return redirect('https://liff.line.me/2002781978-z0OmQRAR')
-    redirect_url = f"https://liff.line.me/2002781978-z0OmQRAR?name={name}&department={department}&student_id={student_id}&nationality={nationality}"
+        
+    chat_id = session.get("chat_id")
+    redirect_url = f"https://liff.line.me/2002781978-z0OmQRAR?name={name}&department={department}&student_id={student_id}&nationality={nationality}&chat_id={chat_id}"
     return redirect(redirect_url)
 
 
