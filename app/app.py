@@ -1,12 +1,12 @@
-from flask import Flask, redirect, request, render_template, session, url_for
+from flask import Flask, redirect, request, render_template, session, url_for, jsonify
 from requests_oauthlib import OAuth2Session
 from dotenv import load_dotenv
 import requests
 import logging
+import base64
+import json
 import os
 
-# Import utility functions
-from app.utils import clear_token, decode_token, normalize_name
 
 # 設置日誌記錄
 logging.basicConfig(level=logging.DEBUG)
@@ -27,8 +27,45 @@ USER_INFO_URL = os.getenv("OAUTH2_USER_INFO_URL")
 LOGOUT_URL = os.getenv("OAUTH2_LOGOUT_URL")
 
 
-@app.route("/")
+def clear_token():
+    if "oauth_token" in session:
+        del session["oauth_token"]
+
+
+def decode_token(access_token):
+    try:
+        jwt_parts = access_token.split(".")
+        if len(jwt_parts) != 3:
+            raise ValueError("Invalid token format")
+        payload_encoded = jwt_parts[1]
+        payload_encoded += "=" * (4 - len(payload_encoded) % 4)
+        payload_decoded = base64.urlsafe_b64decode(payload_encoded)
+        payload = json.loads(payload_decoded)
+        return payload
+    except Exception as e:
+        print(f"Error decoding token: {str(e)}")
+        return {}
+
+
+def normalize_name(display_name, student_en_name):
+    """
+    Normalize the display name and student English name to ensure consistent formatting.
+    """
+    if student_en_name.lower() not in display_name.lower():
+        full_name = f"{display_name} {student_en_name}"
+    else:
+        full_name = display_name
+    return full_name
+
+
+@app.route("/", methods=["GET"])
 def index():
+    chat_id = request.args.get("chat_id")
+    if chat_id:
+        # 在這裡處理接收到的 chat_id，比如保存到數據庫或其他操作
+        print(f"Received chat_id: {chat_id}")
+    else:
+        print(f"Did not receive chat_id")
     # Perform logout first
     logout_redirect = f"https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply=https://chatbot.oia.ncku.edu.tw/start-auth"
     response = redirect(logout_redirect)
