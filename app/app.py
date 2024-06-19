@@ -6,6 +6,8 @@ import logging
 import base64
 import json
 import os
+import httpx
+import asyncio
 
 
 # 設置日誌記錄
@@ -145,21 +147,27 @@ def submit_info():
         print(f"{key}: {value}")
 
     redirect_url = f"https://3dd1-140-116-249-221.ngrok-free.app/sign_up/{nationality}&{student_id}&{name}&{department}&{chat_id}"
-    # API
-    try:
-        response = requests.get(redirect_url)
-        if response.status_code == 200:
-            print("Data successfully sent to the API.")
-            return response.text
-        else:
-            print(f"Failed to send data to the API: {response.status_code}")
-            return (
-                f"Failed to send data to the API: {response.status_code}",
-                response.status_code,
-            )
-    except Exception as e:
-        print(f"Error sending data to the API: {str(e)}")
-        return f"Error sending data to the API: {str(e)}", 500
+    # Asynchronous request
+    response = asyncio.run(send_async_request(redirect_url))
+    return response
+
+
+async def send_async_request(url):
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(url)
+            if response.status_code == 200:
+                print("Data successfully sent to the API.")
+                return response.text
+            else:
+                print(f"Failed to send data to the API: {response.status_code}")
+                return (
+                    f"Failed to send data to the API: {response.status_code}",
+                    response.status_code,
+                )
+        except Exception as e:
+            print(f"Error sending data to the API: {str(e)}")
+            return f"Error sending data to the API: {str(e)}", 500
 
 
 if __name__ == "__main__":
