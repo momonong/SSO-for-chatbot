@@ -137,15 +137,29 @@ def submit_info():
     department = request.form.get("department")
     student_id = request.form.get("student_id")
     nationality = request.form.get("nationality")
+    chat_id = session.get("chat_id")
 
     # 打印所有提交的表單數據
     print("\n所有提交的表單數據:")
     for key, value in request.form.items():
         print(f"{key}: {value}")
-        
-    chat_id = session.get("chat_id")
-    redirect_url = f"https://liff.line.me/2002781978-z0OmQRAR?name={name}&department={department}&student_id={student_id}&nationality={nationality}&chat_id={chat_id}"
-    return redirect(redirect_url)
+
+    redirect_url = f"https://3dd1-140-116-249-221.ngrok-free.app/sign_up/{nationality}&{student_id}&{name}&{department}&{chat_id}"
+    # API
+    try:
+        response = requests.get(redirect_url)
+        if response.status_code == 200:
+            print("Data successfully sent to the API.")
+            return response.text
+        else:
+            print(f"Failed to send data to the API: {response.status_code}")
+            return (
+                f"Failed to send data to the API: {response.status_code}",
+                response.status_code,
+            )
+    except Exception as e:
+        print(f"Error sending data to the API: {str(e)}")
+        return f"Error sending data to the API: {str(e)}", 500
 
 
 if __name__ == "__main__":
