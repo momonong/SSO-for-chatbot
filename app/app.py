@@ -69,7 +69,7 @@ def index():
     chat_id = request.args.get("chat_id")
     if chat_id:
         # 在這裡處理接收到的 chat_id，比如保存到數據庫或其他操作
-        print(f"Received chat_id: {chat_id}")
+        print(f"\n\nReceived chat_id: {chat_id}\n\n")
         session["chat_id"] = chat_id
     else:
         print(f"Did not receive chat_id")
@@ -86,7 +86,7 @@ def start_auth():
     # 保留 chat_id
     chat_id = session.get("chat_id")
     if chat_id:
-        print(f"Using chat_id from session: {chat_id}")
+        print(f"\n\nUsing chat_id from session: {chat_id}\n\n")
 
     # Start the OAuth authorization process
     ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
@@ -95,6 +95,7 @@ def start_auth():
     )
     session["oauth_state"] = state
     session["chat_id"] = chat_id  # 再次保存 chat_id
+    print(f"\n\noauth statte: {state}\nChat ID: {chat_id}\n\n")
     return redirect(authorization_url)
 
 
@@ -113,6 +114,8 @@ def callback():
         if response.status_code == 200:
             token = response.json()
             session["access_token"] = token
+            print(f"\n\nAccess token: {token}\n\n")
+            print(f"\n\nSession: {session}\n\n")
             return redirect(url_for("fill_form"))
         else:
             return f"Failed to fetch token: {response.json()}", 400
