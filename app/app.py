@@ -90,6 +90,7 @@ def normalize_name(display_name, student_en_name):
 def index():
     user_info = session.get("user_info")
     print(f"\n\nUser info: {user_info}\n\n")
+    print(f"\n\nSession: {session}\n\n")
     if user_info:
         # 如果session中有用户信息，显示确认登出页面
         return redirect(url_for("confirm_logout"))
