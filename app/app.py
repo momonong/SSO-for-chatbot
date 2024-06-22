@@ -69,60 +69,46 @@ def normalize_name(display_name, student_en_name):
     return full_name
 
 
-# @app.route("/", methods=["GET"])
-# def index():
-#     chat_id = request.args.get("chat_id")
-#     if chat_id:
-#         # 在這裡處理接收到的 chat_id，比如保存到數據庫或其他操作
-#         print(f"\n\nReceived chat_id: {chat_id}\n\n")
-#         session["chat_id"] = chat_id
-#     else:
-#         print(f"Did not receive chat_id")
-
-#     # Perform logout first
-#     logout_redirect = f"https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply=https://chatbot.oia.ncku.edu.tw/start-auth"
-#     response = redirect(logout_redirect)
-
-#     return response
-
-
 @app.route("/", methods=["GET"])
 def index():
-    user_info = session.get("user_info")
-    print(f"\n\nUser info: {user_info}\n\n")
-    print(f"\n\nSession: {session}\n\n")
-    if "access_token" in session:
-        # 如果session中有access_token，則直接跳轉到填寫表單頁面
-        return redirect(url_for("confirm_logout"))
-    else:
-        chat_id = request.args.get("chat_id")
-        if chat_id:
-            # 在這裡處理接收到的 chat_id，比如保存到數據庫或其他操作
-            print(f"\n\nReceived chat_id: {chat_id}\n\n")
-            session["chat_id"] = chat_id
-        else:
-            print(f"Did not receive chat_id")
-
-        # Redirect to start-auth for SSO login
-        return redirect(url_for("start_auth"))
-
-
-@app.route("/confirm-logout")
-def confirm_logout():
-    user_info = session.get("user_info")
-    if not user_info:
-        return redirect(url_for("start_auth"))
-    return render_template("confirm_logout.html", user_info=user_info)
-
-
-@app.route("/logout")
-def logout():
-    # Store chat_id before clearing session
-    chat_id = session.get("chat_id")
+    # Clear session and token after initiating logout
     session.clear()
-    session["chat_id"] = chat_id
-    logout_redirect = f"https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply=https://chatbot.oia.ncku.edu.tw"
-    return redirect(logout_redirect)
+    clear_token()
+
+    chat_id = request.args.get("chat_id")
+    if chat_id:
+        # 在這裡處理接收到的 chat_id，比如保存到數據庫或其他操作
+        print(f"\n\nReceived chat_id: {chat_id}\n\n")
+        session["chat_id"] = chat_id
+    else:
+        print(f"Did not receive chat_id")
+
+    # Perform logout first
+    logout_redirect = f"https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply=https://chatbot.oia.ncku.edu.tw/start-auth"
+    response = redirect(logout_redirect)
+
+    return response
+
+
+# @app.route("/", methods=["GET"])
+# def index():
+#     user_info = session.get("user_info")
+#     print(f"\n\nUser info: {user_info}\n\n")
+#     print(f"\n\nSession: {session}\n\n")
+#     if "access_token" in session:
+#         # 如果session中有access_token，則直接跳轉到填寫表單頁面
+#         return redirect(url_for("confirm_logout"))
+#     else:
+#         chat_id = request.args.get("chat_id")
+#         if chat_id:
+#             # 在這裡處理接收到的 chat_id，比如保存到數據庫或其他操作
+#             print(f"\n\nReceived chat_id: {chat_id}\n\n")
+#             session["chat_id"] = chat_id
+#         else:
+#             print(f"Did not receive chat_id")
+
+#         # Redirect to start-auth for SSO login
+#         return redirect(url_for("start_auth"))
 
 
 @app.route("/start-auth")
