@@ -96,7 +96,8 @@ def index():
     else:
         print(f"Did not receive chat_id")
 
-    return render_template("index.html")  # 渲染主页，不清除session
+    # Redirect to start-auth for SSO login
+    return redirect(url_for("start_auth"))
 
 
 @app.route("/logout")
