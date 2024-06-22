@@ -147,10 +147,13 @@ def submit_info():
         print(f"{key}: {value}")
 
     redirect_url = f"https://3dd1-140-116-249-221.ngrok-free.app/sign_up/{nationality}&{student_id}&{name}&{department}&{chat_id}"
+    
     # Asynchronous request
     response = asyncio.run(send_async_request(redirect_url))
-    return response
-
+    if response:
+        return render_template("submission_success.html")
+    else:
+        return "資料提交失敗，請稍後再試。", 500
 
 async def send_async_request(url):
     async with httpx.AsyncClient() as client:
