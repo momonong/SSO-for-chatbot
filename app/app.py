@@ -91,8 +91,8 @@ def index():
     user_info = session.get("user_info")
     print(f"\n\nUser info: {user_info}\n\n")
     print(f"\n\nSession: {session}\n\n")
-    if user_info:
-        # 如果session中有用户信息，显示确认登出页面
+    if "access_token" in session:
+        # 如果session中有access_token，則直接跳轉到填寫表單頁面
         return redirect(url_for("confirm_logout"))
     chat_id = request.args.get("chat_id")
     if chat_id:
