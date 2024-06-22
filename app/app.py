@@ -89,6 +89,7 @@ def normalize_name(display_name, student_en_name):
 @app.route("/", methods=["GET"])
 def index():
     user_info = session.get("user_info")
+    print(f"\n\nUser info: {user_info}\n\n")
     if user_info:
         # 如果session中有用户信息，显示确认登出页面
         return redirect(url_for("confirm_logout"))
