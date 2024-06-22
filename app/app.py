@@ -94,16 +94,17 @@ def index():
     if "access_token" in session:
         # 如果session中有access_token，則直接跳轉到填寫表單頁面
         return redirect(url_for("confirm_logout"))
-    chat_id = request.args.get("chat_id")
-    if chat_id:
-        # 在這裡處理接收到的 chat_id，比如保存到數據庫或其他操作
-        print(f"\n\nReceived chat_id: {chat_id}\n\n")
-        session["chat_id"] = chat_id
     else:
-        print(f"Did not receive chat_id")
+        chat_id = request.args.get("chat_id")
+        if chat_id:
+            # 在這裡處理接收到的 chat_id，比如保存到數據庫或其他操作
+            print(f"\n\nReceived chat_id: {chat_id}\n\n")
+            session["chat_id"] = chat_id
+        else:
+            print(f"Did not receive chat_id")
 
-    # Redirect to start-auth for SSO login
-    return redirect(url_for("start_auth"))
+        # Redirect to start-auth for SSO login
+        return redirect(url_for("start_auth"))
 
 
 @app.route("/confirm-logout")
