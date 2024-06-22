@@ -1,5 +1,7 @@
 from flask import Flask, redirect, request, render_template, session, url_for, jsonify
 from requests_oauthlib import OAuth2Session
+from flask_session import Session
+from datetime import timedelta
 from dotenv import load_dotenv
 import requests
 import logging
@@ -17,6 +19,13 @@ app = Flask(__name__)
 app.secret_key = os.urandom(24)  # 用於安全地簽名session
 
 load_dotenv()  # 加載 .env 文件中的變量
+
+# Flask-Session配置
+app.config["SESSION_TYPE"] = "filesystem"
+app.config["SESSION_PERMANENT"] = False
+app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=4)
+app.config["SESSION_FILE_DIR"] = os.path.join(app.instance_path, "session_files")
+Session(app)
 
 # OAuth 配置
 CLIENT_ID = os.getenv("OAUTH2_CLIENT_ID")
@@ -60,12 +69,25 @@ def normalize_name(display_name, student_en_name):
     return full_name
 
 
+# @app.route("/", methods=["GET"])
+# def index():
+#     chat_id = request.args.get("chat_id")
+#     if chat_id:
+#         # 在這裡處理接收到的 chat_id，比如保存到數據庫或其他操作
+#         print(f"\n\nReceived chat_id: {chat_id}\n\n")
+#         session["chat_id"] = chat_id
+#     else:
+#         print(f"Did not receive chat_id")
+
+#     # Perform logout first
+#     logout_redirect = f"https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply=https://chatbot.oia.ncku.edu.tw/start-auth"
+#     response = redirect(logout_redirect)
+
+#     return response
+
+
 @app.route("/", methods=["GET"])
 def index():
-    # Clear session and token after initiating logout
-    session.clear()
-    clear_token()
-
     chat_id = request.args.get("chat_id")
     if chat_id:
         # 在這裡處理接收到的 chat_id，比如保存到數據庫或其他操作
@@ -74,28 +96,32 @@ def index():
     else:
         print(f"Did not receive chat_id")
 
-    # Perform logout first
-    logout_redirect = f"https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply=https://chatbot.oia.ncku.edu.tw/start-auth"
-    response = redirect(logout_redirect)
+    return render_template("index.html")  # 渲染主页，不清除session
 
-    return response
+
+@app.route("/logout")
+def logout():
+    # Clear current user's session and token during logout
+    session.clear()
+    logout_redirect = f"https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply=https://chatbot.oia.ncku.edu.tw/start-auth"
+    return redirect(logout_redirect)
 
 
 @app.route("/start-auth")
 def start_auth():
-    # 保留 chat_id
     chat_id = session.get("chat_id")
     if chat_id:
         print(f"\n\nUsing chat_id from session: {chat_id}\n\n")
+    else:
+        return "No chat_id found in session", 400
 
-    # Start the OAuth authorization process
     ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
     authorization_url, state = ncku.authorization_url(
         AUTHORIZATION_BASE_URL, resource=RESOURCE
     )
     session["oauth_state"] = state
     session["chat_id"] = chat_id  # 再次保存 chat_id
-    print(f"\n\noauth statte: {state}\nChat ID: {chat_id}\n\n")
+    print(f"\n\noauth state: {state}\nChat ID: {chat_id}\n\n")
     return redirect(authorization_url)
 
 
