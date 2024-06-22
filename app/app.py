@@ -132,7 +132,7 @@ def fill_form():
     user_info["normalized_name"] = normalize_name(
         user_info["DisplayName"], user_info["studentStuEnName"]
     )
-    print(f"\n\n\nUser info: {user_info}\n\n\n")
+    print(f"\n\nUser info: {user_info}\n\n")
     return render_template("fill_form.html", user_info=user_info)
 
 
@@ -154,6 +154,7 @@ def submit_info():
     # Asynchronous request
     response = asyncio.run(send_async_request(redirect_url))
     if response:
+        print(f'\n\nredirect_url\n\n')
         return render_template("submission_success.html")
     else:
         return "資料提交失敗，請稍後再試。", 500
