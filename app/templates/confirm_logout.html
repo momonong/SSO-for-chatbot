@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Confirm Logout</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card mt-5">
+                    <div class="card-header text-center">
+                        <h1>Confirm Logout / 確認登出</h1>
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Student ID / 學號:</strong> {{ user_info.student_id }}</p>
+                        <p><strong>Name / 姓名:</strong> {{ user_info.DisplayName }}</p>
+                        <p><strong>Department / 系所:</strong> {{ user_info.department }}</p>
+                        <p>Are you sure you want to logout? / 您確定要登出嗎？</p>
+                        <div class="text-center">
+                            <a href="{{ url_for('logout') }}" class="btn btn-danger">Yes, logout / 是的，登出</a>
+                            <a href="{{ url_for('fill_form') }}" class="btn btn-secondary">No, go back / 不，返回</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
