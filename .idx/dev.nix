@@ -8,6 +8,7 @@
   packages = [
     pkgs.poetry
     pkgs.neofetch
+    pkgs.python310
     # pkgs.go
     # pkgs.python311
     # pkgs.python311Packages.pip
