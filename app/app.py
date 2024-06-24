@@ -16,7 +16,7 @@ import asyncio
 logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY')   # 用於安全地簽名session
+app.secret_key = os.getenv("SECRET_KEY")  # 用於安全地簽名session
 
 load_dotenv()  # 加載 .env 文件中的變量
 
@@ -69,7 +69,7 @@ def normalize_name(display_name, student_en_name):
     return full_name
 
 
-@app.route("/", methods=["GET"])
+@app.route("/register", methods=["GET"])
 def index():
     # Clear session and token after initiating logout
     session.clear()
@@ -84,13 +84,13 @@ def index():
         print(f"Did not receive chat_id")
 
     # Perform logout first
-    logout_redirect = f"https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply=https://chatbot.oia.ncku.edu.tw/start-auth"
+    logout_redirect = f"https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply=https://chatbot.oia.ncku.edu.tw/register/start-auth"
     response = redirect(logout_redirect)
 
     return response
 
 
-@app.route("/start-auth")
+@app.route("/register/start-auth")
 def start_auth():
     chat_id = session.get("chat_id")
     if chat_id:
@@ -108,7 +108,7 @@ def start_auth():
     return redirect(authorization_url)
 
 
-@app.route("/callback")
+@app.route("/register/callback")
 def callback():
     authorization_code = request.args.get("code")
     try:
@@ -132,7 +132,7 @@ def callback():
         return f"Failed to fetch token: {str(e)}", 400
 
 
-@app.route("/fill-form")
+@app.route("/register/fill-form")
 def fill_form():
     if "access_token" not in session:
         return "User info not found in the session", 400
@@ -145,7 +145,7 @@ def fill_form():
     return render_template("fill_form.html", user_info=user_info)
 
 
-@app.route("/submit-info", methods=["POST"])
+@app.route("/register/submit-info", methods=["POST"])
 def submit_info():
     name = request.form.get("name")
     department = request.form.get("department")
@@ -158,7 +158,7 @@ def submit_info():
     for key, value in request.form.items():
         print(f"{key}: {value}")
     print("\n\n")
-    redirect_url = f"https://3dd1-140-116-249-221.ngrok-free.app/sign_up/{nationality}&{student_id}&{name}&{department}&{chat_id}"
+    redirect_url = f"https://chatbot.oia.ncku.edu.tw/sign_up/{nationality}&{student_id}&{name}&{department}&{chat_id}"
 
     # Asynchronous request
     response = asyncio.run(send_async_request(redirect_url))
