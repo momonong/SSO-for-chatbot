@@ -108,7 +108,7 @@ def start_auth():
     return redirect(authorization_url)
 
 
-@app.route("/register/callback")
+@app.route("/callback")
 def callback():
     authorization_code = request.args.get("code")
     try:
