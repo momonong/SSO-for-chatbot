@@ -162,7 +162,7 @@ def submit_info():
 
     # Asynchronous request
     response = asyncio.run(send_async_request(redirect_url))
-    if response:
+    if response: #TODO: here will always go into success condition
         print(f"\n\nredirect_url: {redirect_url}\n\n")
         return render_template("submission_success.html")
     else:
