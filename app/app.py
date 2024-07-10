@@ -161,11 +161,15 @@ def submit_info():
     redirect_url = f"https://chatbot.oia.ncku.edu.tw/sign_up/{nationality}&{student_id}&{name}&{department}&{chat_id}"
 
     # Asynchronous request
-    response = asyncio.run(send_async_request(redirect_url))
-    if response: #TODO: here will always go into success condition
-        print(f"\n\nredirect_url: {redirect_url}\n\n")
-        return render_template("submission_success.html")
-    else:
+    try:
+        response_text = asyncio.run(send_async_request(redirect_url))
+        if response_text:
+            print(f"\n\nredirect_url: {redirect_url}\n\n")
+            return render_template("submission_success.html")
+        else:
+            return "資料提交失敗，請稍後再試。", 500
+    except Exception as e:
+        print(f"Error during async request: {str(e)}")
         return "資料提交失敗，請稍後再試。", 500
 
 
@@ -178,13 +182,10 @@ async def send_async_request(url):
                 return response.text
             else:
                 print(f"Failed to send data to the API: {response.status_code}")
-                return (
-                    f"Failed to send data to the API: {response.status_code}",
-                    response.status_code,
-                )
+                return None
         except Exception as e:
             print(f"Error sending data to the API: {str(e)}")
-            return f"Error sending data to the API: {str(e)}", 500
+            return None
 
 
 if __name__ == "__main__":
