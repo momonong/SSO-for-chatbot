@@ -63,7 +63,7 @@ def normalize_name(display_name, student_en_name):
     return full_name
 
 @app.get("/register", response_class=RedirectResponse)
-async def index(request: Request):
+def index(request: Request):
     session = request.session
     session.clear()
     clear_token(session)
@@ -79,7 +79,7 @@ async def index(request: Request):
     return RedirectResponse(url=logout_redirect)
 
 @app.get("/register/start-auth", response_class=RedirectResponse)
-async def start_auth(request: Request):
+def start_auth(request: Request):
     session = request.session
     chat_id = session.get("chat_id")
     if chat_id:
@@ -97,7 +97,7 @@ async def start_auth(request: Request):
     return RedirectResponse(url=authorization_url)
 
 @app.get("/register/callback", response_class=RedirectResponse)
-async def register_callback(request: Request):
+def register_callback(request: Request):
     authorization_code = request.query_params.get("code")
     try:
         data = {
@@ -120,7 +120,7 @@ async def register_callback(request: Request):
         raise HTTPException(status_code=400, detail=f"Failed to fetch token: {str(e)}")
 
 @app.get("/register/fill-form", response_class=HTMLResponse)
-async def fill_form(request: Request):
+def fill_form(request: Request):
     if "access_token" not in request.session:
         raise HTTPException(status_code=400, detail="User info not found in the session")
     token = request.session.get("access_token")
