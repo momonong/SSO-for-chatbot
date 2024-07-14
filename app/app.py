@@ -136,11 +136,17 @@ async def submit_info(request: Request, name: str = Form(...), department: str =
     session = request.session
     chat_id = session.get("chat_id")
 
+    # 檢查所有表單數據是否存在
+    if not all([name, department, student_id, nationality, chat_id]):
+        print("\n\nMissing form data or chat_id.\n\n")
+        return templates.TemplateResponse("submission_error.html", {"request": request})
+
     # 打印所有提交的表單數據
     print("\n所有提交的表單數據:")
     print(f"name: {name}, department: {department}, student_id: {student_id}, nationality: {nationality}, chat_id: {chat_id}")
     print("\n\n")
     redirect_url = f"https://chatbot.oia.ncku.edu.tw/sign_up/{nationality}&{student_id}&{name}&{department}&{chat_id}"
+    print(f'\n\nredirect_url: {redirect_url}\n\n')
 
     # Asynchronous request
     try:
@@ -149,10 +155,11 @@ async def submit_info(request: Request, name: str = Form(...), department: str =
             print(f"\n\nredirect_url: {redirect_url}\n\n")
             return templates.TemplateResponse("submission_success.html", {"request": request})
         else:
-            raise HTTPException(status_code=500, detail="資料提交失敗，請稍後再試。")
+            print("\n\nFailed to send data to the API. Rendering error page.\n\n")
+            return templates.TemplateResponse("submission_error.html", {"request": request})
     except Exception as e:
         print(f"\n\nError during async request: {str(e)}\n\n")
-        raise HTTPException(status_code=500, detail="資料提交失敗，請稍後再試。")
+        return templates.TemplateResponse("submission_error.html", {"request": request})
 
 async def send_async_request(url):
     async with httpx.AsyncClient() as client:
