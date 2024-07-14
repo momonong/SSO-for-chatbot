@@ -1,8 +1,10 @@
-from flask import Flask, redirect, request, render_template, session, url_for, jsonify
+from fastapi import FastAPI, Request, Depends, HTTPException, status, Form
+from fastapi.responses import RedirectResponse, HTMLResponse
+from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
 from requests_oauthlib import OAuth2Session
-from flask_session import Session
-from datetime import timedelta
 from dotenv import load_dotenv
+from datetime import timedelta
 import requests
 import logging
 import base64
@@ -11,21 +13,16 @@ import os
 import httpx
 import asyncio
 
-
 # 設置日誌記錄
 logging.basicConfig(level=logging.DEBUG)
 
-app = Flask(__name__)
-app.secret_key = os.getenv("SECRET_KEY")  # 用於安全地簽名session
-
 load_dotenv()  # 加載 .env 文件中的變量
 
-# Flask-Session配置
-app.config["SESSION_TYPE"] = "filesystem"
-app.config["SESSION_PERMANENT"] = False
-app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(hours=4)
-app.config["SESSION_FILE_DIR"] = os.path.join(app.instance_path, "session_files")
-Session(app)
+app = FastAPI()
+
+app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY"))
+
+templates = Jinja2Templates(directory="templates")
 
 # OAuth 配置
 CLIENT_ID = os.getenv("OAUTH2_CLIENT_ID")
@@ -37,11 +34,9 @@ RESOURCE = os.getenv("OAUTH2_RESOURCE")
 USER_INFO_URL = os.getenv("OAUTH2_USER_INFO_URL")
 LOGOUT_URL = os.getenv("OAUTH2_LOGOUT_URL")
 
-
-def clear_token():
+def clear_token(session):
     if "oauth_token" in session:
         del session["oauth_token"]
-
 
 def decode_token(access_token):
     try:
@@ -57,7 +52,6 @@ def decode_token(access_token):
         print(f"Error decoding token: {str(e)}")
         return {}
 
-
 def normalize_name(display_name, student_en_name):
     """
     Normalize the display name and student English name to ensure consistent formatting.
@@ -68,35 +62,30 @@ def normalize_name(display_name, student_en_name):
         full_name = display_name
     return full_name
 
-
-@app.route("/register", methods=["GET"])
-def index():
-    # Clear session and token after initiating logout
+@app.get("/register", response_class=RedirectResponse)
+async def index(request: Request):
+    session = request.session
     session.clear()
-    clear_token()
+    clear_token(session)
 
-    chat_id = request.args.get("chat_id")
+    chat_id = request.query_params.get("chat_id")
     if chat_id:
-        # 在這裡處理接收到的 chat_id，比如保存到數據庫或其他操作
         print(f"\n\nReceived chat_id: {chat_id}\n\n")
         session["chat_id"] = chat_id
     else:
         print(f"Did not receive chat_id")
 
-    # Perform logout first
     logout_redirect = f"https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply=https://chatbot.oia.ncku.edu.tw/register/start-auth"
-    response = redirect(logout_redirect)
+    return RedirectResponse(url=logout_redirect)
 
-    return response
-
-
-@app.route("/register/start-auth")
-def start_auth():
+@app.get("/register/start-auth", response_class=RedirectResponse)
+async def start_auth(request: Request):
+    session = request.session
     chat_id = session.get("chat_id")
     if chat_id:
         print(f"\n\nUsing chat_id from session: {chat_id}\n\n")
     else:
-        return "No chat_id found in session", 400
+        raise HTTPException(status_code=400, detail="No chat_id found in session")
 
     ncku = OAuth2Session(CLIENT_ID, redirect_uri=REDIRECT_URI)
     authorization_url, state = ncku.authorization_url(
@@ -105,12 +94,11 @@ def start_auth():
     session["oauth_state"] = state
     session["chat_id"] = chat_id  # 再次保存 chat_id
     print(f"\n\noauth state: {state}\nChat ID: {chat_id}\n\n")
-    return redirect(authorization_url)
+    return RedirectResponse(url=authorization_url)
 
-
-@app.route("/register/callback")
-def register_callback():
-    authorization_code = request.args.get("code")
+@app.get("/register/callback", response_class=RedirectResponse)
+async def register_callback(request: Request):
+    authorization_code = request.query_params.get("code")
     try:
         data = {
             "grant_type": "authorization_code",
@@ -122,56 +110,49 @@ def register_callback():
         response = requests.post(TOKEN_URL, data=data)
         if response.status_code == 200:
             token = response.json()
-            session["access_token"] = token
+            request.session["access_token"] = token
             print(f"\n\nAccess token: {token}\n\n")
-            print(f"\n\nSession: {session}\n\n")
-            return redirect(url_for("fill_form"))
+            print(f"\n\nSession: {request.session}\n\n")
+            return RedirectResponse(url="/register/fill-form")
         else:
-            return f"Failed to fetch token: {response.json()}", 400
+            raise HTTPException(status_code=400, detail=f"Failed to fetch token: {response.json()}")
     except Exception as e:
-        return f"Failed to fetch token: {str(e)}", 400
+        raise HTTPException(status_code=400, detail=f"Failed to fetch token: {str(e)}")
 
-
-@app.route("/register/fill-form")
-def fill_form():
-    if "access_token" not in session:
-        return "User info not found in the session", 400
-    token = session.get("access_token")
+@app.get("/register/fill-form", response_class=HTMLResponse)
+async def fill_form(request: Request):
+    if "access_token" not in request.session:
+        raise HTTPException(status_code=400, detail="User info not found in the session")
+    token = request.session.get("access_token")
     user_info = decode_token(token["access_token"])
     user_info["normalized_name"] = normalize_name(
         user_info["DisplayName"], user_info["studentStuEnName"]
     )
     print(f"\n\nUser info: {user_info}\n\n")
-    return render_template("fill_form.html", user_info=user_info)
+    return templates.TemplateResponse("fill_form.html", {"request": request, "user_info": user_info})
 
-
-@app.route("/register/submit-info", methods=["POST"])
-def submit_info():
-    name = request.form.get("name")
-    department = request.form.get("department")
-    student_id = request.form.get("student_id")
-    nationality = request.form.get("nationality")
+@app.post("/register/submit-info", response_class=HTMLResponse)
+async def submit_info(request: Request, name: str = Form(...), department: str = Form(...), student_id: str = Form(...), nationality: str = Form(...)):
+    session = request.session
     chat_id = session.get("chat_id")
 
     # 打印所有提交的表單數據
     print("\n所有提交的表單數據:")
-    for key, value in request.form.items():
-        print(f"{key}: {value}")
+    print(f"name: {name}, department: {department}, student_id: {student_id}, nationality: {nationality}, chat_id: {chat_id}")
     print("\n\n")
     redirect_url = f"https://chatbot.oia.ncku.edu.tw/sign_up/{nationality}&{student_id}&{name}&{department}&{chat_id}"
 
     # Asynchronous request
     try:
-        response_text = asyncio.run(send_async_request(redirect_url))
+        response_text = await send_async_request(redirect_url)
         if response_text:
             print(f"\n\nredirect_url: {redirect_url}\n\n")
-            return render_template("submission_success.html")
+            return templates.TemplateResponse("submission_success.html", {"request": request})
         else:
-            return "資料提交失敗，請稍後再試。", 500
+            raise HTTPException(status_code=500, detail="資料提交失敗，請稍後再試。")
     except Exception as e:
         print(f"Error during async request: {str(e)}")
-        return "資料提交失敗，請稍後再試。", 500
-
+        raise HTTPException(status_code=500, detail="資料提交失敗，請稍後再試。")
 
 async def send_async_request(url):
     async with httpx.AsyncClient() as client:
@@ -187,6 +168,6 @@ async def send_async_request(url):
             print(f"Error sending data to the API: {str(e)}")
             return None
 
-
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=8080)
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8080)
