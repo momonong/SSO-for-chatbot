@@ -49,7 +49,7 @@ def decode_token(access_token):
         payload = json.loads(payload_decoded)
         return payload
     except Exception as e:
-        print(f"Error decoding token: {str(e)}")
+        print(f"\n\nError decoding token: {str(e)}\n\n")
         return {}
 
 def normalize_name(display_name, student_en_name):
@@ -73,7 +73,7 @@ def index(request: Request):
         print(f"\n\nReceived chat_id: {chat_id}\n\n")
         session["chat_id"] = chat_id
     else:
-        print(f"Did not receive chat_id")
+        print(f"\n\nDid not receive chat_id\n\n")
 
     logout_redirect = f"https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply=https://chatbot.oia.ncku.edu.tw/register/start-auth"
     return RedirectResponse(url=logout_redirect)
@@ -151,7 +151,7 @@ async def submit_info(request: Request, name: str = Form(...), department: str =
         else:
             raise HTTPException(status_code=500, detail="資料提交失敗，請稍後再試。")
     except Exception as e:
-        print(f"Error during async request: {str(e)}")
+        print(f"\n\nError during async request: {str(e)}\n\n")
         raise HTTPException(status_code=500, detail="資料提交失敗，請稍後再試。")
 
 async def send_async_request(url):
@@ -159,13 +159,13 @@ async def send_async_request(url):
         try:
             response = await client.get(url)
             if response.status_code == 200:
-                print("Data successfully sent to the API.")
+                print("\n\nData successfully sent to the API.\n\n")
                 return response.text
             else:
-                print(f"Failed to send data to the API: {response.status_code}")
+                print(f"\n\nFailed to send data to the API: {response.status_code}\n\n")
                 return None
         except Exception as e:
-            print(f"Error sending data to the API: {str(e)}")
+            print(f"\n\nError sending data to the API: {str(e)}\n\n")
             return None
 
 if __name__ == "__main__":
