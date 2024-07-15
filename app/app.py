@@ -22,7 +22,12 @@ app = FastAPI()
 
 app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY"))
 
-templates = Jinja2Templates(directory="templates")
+# Use absolute path for templates directory
+template_dir = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "templates")
+)
+templates = Jinja2Templates(directory=template_dir)
+print(f"Template directory: {template_dir}")
 
 # OAuth 配置
 CLIENT_ID = os.getenv("OAUTH2_CLIENT_ID")
