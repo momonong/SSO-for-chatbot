@@ -34,9 +34,11 @@ RESOURCE = os.getenv("OAUTH2_RESOURCE")
 USER_INFO_URL = os.getenv("OAUTH2_USER_INFO_URL")
 LOGOUT_URL = os.getenv("OAUTH2_LOGOUT_URL")
 
+
 def clear_token(session):
     if "oauth_token" in session:
         del session["oauth_token"]
+
 
 def decode_token(access_token):
     try:
@@ -52,6 +54,7 @@ def decode_token(access_token):
         print(f"\n\nError decoding token: {str(e)}\n\n")
         return {}
 
+
 def normalize_name(display_name, student_en_name):
     """
     Normalize the display name and student English name to ensure consistent formatting.
@@ -61,6 +64,7 @@ def normalize_name(display_name, student_en_name):
     else:
         full_name = display_name
     return full_name
+
 
 @app.get("/register", response_class=RedirectResponse)
 def index(request: Request):
@@ -77,6 +81,7 @@ def index(request: Request):
 
     logout_redirect = f"https://fs.ncku.edu.tw/adfs/ls/?wa=wsignout1.0&wreply=https://chatbot.oia.ncku.edu.tw/register/start-auth"
     return RedirectResponse(url=logout_redirect)
+
 
 @app.get("/register/start-auth", response_class=RedirectResponse)
 def start_auth(request: Request):
@@ -95,6 +100,7 @@ def start_auth(request: Request):
     session["chat_id"] = chat_id  # 再次保存 chat_id
     print(f"\n\noauth state: {state}\nChat ID: {chat_id}\n\n")
     return RedirectResponse(url=authorization_url)
+
 
 @app.get("/register/callback", response_class=RedirectResponse)
 def register_callback(request: Request):
@@ -115,24 +121,38 @@ def register_callback(request: Request):
             print(f"\n\nSession: {request.session}\n\n")
             return RedirectResponse(url="/register/fill-form")
         else:
-            raise HTTPException(status_code=400, detail=f"Failed to fetch token: {response.json()}")
+            raise HTTPException(
+                status_code=400, detail=f"Failed to fetch token: {response.json()}"
+            )
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Failed to fetch token: {str(e)}")
+
 
 @app.get("/register/fill-form", response_class=HTMLResponse)
 def fill_form(request: Request):
     if "access_token" not in request.session:
-        raise HTTPException(status_code=400, detail="User info not found in the session")
+        raise HTTPException(
+            status_code=400, detail="User info not found in the session"
+        )
     token = request.session.get("access_token")
     user_info = decode_token(token["access_token"])
     user_info["normalized_name"] = normalize_name(
         user_info["DisplayName"], user_info["studentStuEnName"]
     )
     print(f"\n\nUser info: {user_info}\n\n")
-    return templates.TemplateResponse("fill_form.html", {"request": request, "user_info": user_info})
+    return templates.TemplateResponse(
+        "fill_form.html", {"request": request, "user_info": user_info}
+    )
+
 
 @app.post("/register/submit-info", response_class=HTMLResponse)
-async def submit_info(request: Request, name: str = Form(...), department: str = Form(...), student_id: str = Form(...), nationality: str = Form(...)):
+async def submit_info(
+    request: Request,
+    name: str = Form(...),
+    department: str = Form(...),
+    student_id: str = Form(...),
+    nationality: str = Form(...),
+):
     session = request.session
     chat_id = session.get("chat_id")
 
@@ -143,23 +163,29 @@ async def submit_info(request: Request, name: str = Form(...), department: str =
 
     # 打印所有提交的表單數據
     print("\n所有提交的表單數據:")
-    print(f"name: {name}, department: {department}, student_id: {student_id}, nationality: {nationality}, chat_id: {chat_id}")
+    print(
+        f"name: {name}, department: {department}, student_id: {student_id}, nationality: {nationality}, chat_id: {chat_id}"
+    )
     print("\n\n")
     redirect_url = f"https://chatbot.oia.ncku.edu.tw/sign_up/{nationality}&{student_id}&{name}&{department}&{chat_id}"
-    print(f'\n\nredirect_url: {redirect_url}\n\n')
 
     # Asynchronous request
     try:
         response_text = await send_async_request(redirect_url)
         if response_text:
             print(f"\n\nredirect_url: {redirect_url}\n\n")
-            return templates.TemplateResponse("submission_success.html", {"request": request})
+            return templates.TemplateResponse(
+                "submission_success.html", {"request": request}
+            )
         else:
             print("\n\nFailed to send data to the API. Rendering error page.\n\n")
-            return templates.TemplateResponse("submission_error.html", {"request": request})
+            return templates.TemplateResponse(
+                "submission_error.html", {"request": request}
+            )
     except Exception as e:
         print(f"\n\nError during async request: {str(e)}\n\n")
         return templates.TemplateResponse("submission_error.html", {"request": request})
+
 
 async def send_async_request(url):
     async with httpx.AsyncClient() as client:
@@ -175,6 +201,8 @@ async def send_async_request(url):
             print(f"\n\nError sending data to the API: {str(e)}\n\n")
             return None
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8080)
