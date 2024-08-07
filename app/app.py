@@ -24,7 +24,7 @@ app.add_middleware(SessionMiddleware, secret_key=os.getenv("SECRET_KEY"))
 
 # Use relative path for templates directory
 current_dir = os.path.dirname(os.path.abspath(__file__))
-template_dir = os.path.join(current_dir, 'templates')
+template_dir = os.path.join(current_dir, "templates")
 templates = Jinja2Templates(directory=template_dir)
 print(f"\n\nTemplate directory: {template_dir}\n\n")
 
@@ -155,23 +155,37 @@ async def submit_info(
     name: str = Form(...),
     department: str = Form(...),
     student_id: str = Form(...),
+    line_name: str = Form(...),
     nationality: str = Form(...),
+    language: str = Form(...),
+    status: str = Form(...),
 ):
     session = request.session
     chat_id = session.get("chat_id")
 
     # 檢查所有表單數據是否存在
-    if not all([name, department, student_id, nationality, chat_id]):
+    if not all(
+        [
+            name,
+            department,
+            student_id,
+            line_name,
+            nationality,
+            language,
+            status,
+            chat_id,
+        ]
+    ):
         print("\n\nMissing form data or chat_id.\n\n")
         return templates.TemplateResponse("submission_error.html", {"request": request})
 
     # 打印所有提交的表單數據
     print("\n所有提交的表單數據:")
     print(
-        f"name: {name}, department: {department}, student_id: {student_id}, nationality: {nationality}, chat_id: {chat_id}"
+        f"name: {name}, department: {department}, student_id: {student_id}, line_name: {line_name}, nationality: {nationality}, language: {language}, status: {status}, chat_id: {chat_id}"
     )
     print("\n\n")
-    redirect_url = f"https://chatbot.oia.ncku.edu.tw/sign_up/{nationality}&{student_id}&{name}&{department}&{chat_id}"
+    redirect_url = f"https://chatbot.oia.ncku.edu.tw/sign_up/student/{nationality}&{student_id}&{name}&{department}&{line_name}&{language}&{status}&{chat_id}"
 
     # Asynchronous request
     try:
